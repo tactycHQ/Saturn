@@ -1,0 +1,17 @@
+data
+original
+.DS_Store
+*.pyc
+~*.xlsx
+*.pickle
+history_dif.json
+profiling
+*.c
+dist
+*.egg*
+dist
+build
+eval*
+.pytest_cache
+.tox
+docs_api
