@@ -46,12 +46,12 @@ class ExcelCompiler:
                 cell1.value = cell2.value
         return cell_df_formula
 
-    def calculateCells(self, all_cells):
-        computed_cells = []
-
-        for cell in all_cells:
-            value = cell.compute()
-        computed_cells.append()
+    # def calculateCells(self, all_cells):
+    #     computed_cells = []
+    #
+    #     for cell in all_cells:
+    #         value = cell.compute()
+    #     computed_cells.append()
 
 class Cell:
 
@@ -70,5 +70,5 @@ if __name__ ==  '__main__':
     wb_formula = xlc.load_excel(xlsname, data_only=False)
     wb_val = xlc.load_excel(xlsname, data_only=True)
     all_cells = xlc.getCells(wb_formula, wb_val)
-    computed_cells = xlc.calculateCells(all_cells)
+    # computed_cells = xlc.calculateCells(all_cells)
 
