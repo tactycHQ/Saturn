@@ -298,7 +298,7 @@ class Tokenizer(object):
 
     def assert_empty_token(self, can_follow=()):
         """
-        Ensure that there's no token currently being parsed.
+         token currently being parsed.
 
         Or if there is a token being parsed, it must end with a character in
         can_follow.

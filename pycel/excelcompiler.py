@@ -833,6 +833,7 @@ class ExcelCompiler:
         generate a Spreadsheet instance that captures the logic and control
         flow of the equations.
         """
+
         if not isinstance(seed, (AddressRange, AddressCell)):
             if isinstance(seed, str):
                 seed = AddressRange(seed)
