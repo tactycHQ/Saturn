@@ -1,74 +1,87 @@
 from openpyxl import load_workbook, workbook
 import pandas as pd
+from pycel.excelcompiler import ExcelCompiler
+import networkx as nx
 
-class ExcelCompiler:
+class Saturn:
 
-    def __init__(self):
-        return
+    def __init__(self, file):
+        self.file = file
+        self.excel = ExcelCompiler(file)
 
-    def load_excel(self, file, data_only=False):
-        wb = load_workbook(filename=file, data_only=data_only)
+    def load_excel(self,data_only=False):
+        wb = load_workbook(filename=self.file, data_only=data_only)
         return wb
 
-    def getSheets(self, wb):
-        return wb.sheetnames
-
-    def getCells(self, wb, wb2):
-        cell_df_formula = []
+    def getCells(self, wb):
+        all_addrs = []
 
         for sheet in wb.sheetnames:
             for row in wb[sheet].iter_rows():
                 for cell in row:
-                    c= Cell()
-                    c.formula = cell.value
-                    c.row = cell.row
-                    c.column = cell.column
-                    c.coordinate = cell.coordinate
-                    cell_df_formula.append(c)
+                    if cell.value:
+                        address = "{}!{}".format(sheet,cell.coordinate)
+                        all_addrs.append(address)
 
-        cell_df_val = []
-        for sheet in wb2.sheetnames:
-            for row in wb2[sheet].iter_rows():
-                for cell in row:
-                    c= Cell()
-                    c.value = cell.value
-                    c.row = cell.row
-                    c.column = cell.column
-                    c.coordinate = cell.coordinate
-                    cell_df_val.append(c)
+        self.all_cells = all_addrs
+        return self.all_cells
 
-        all_cells = self.addValuestoCells(cell_df_formula,cell_df_val)
-        return all_cells
+    def initializePycel(self, all_addrs):
+        for address in all_addrs:
+            self.excel.evaluate(address)
+        # print(self.excel.cell_map)
+        # print(self.excel._formula_cells_dict)
 
-    def addValuestoCells(self,cell_df_formula, cell_df_val):
-        for cell1, cell2 in zip(cell_df_formula, cell_df_val):
-            if cell1.coordinate == cell2.coordinate:
-                cell1.value = cell2.value
-        return cell_df_formula
 
-    # def calculateCells(self, all_cells):
-    #     computed_cells = []
-    #
-    #     for cell in all_cells:
-    #         value = cell.compute()
-    #     computed_cells.append()
+    def processGraph(self):
+        G = self.excel.dep_graph
+        graph_cells=[]
 
-class Cell:
+        for cell in G:
+            graph_cells.append(cell.address)
+        self.graph_cells = graph_cells
 
-    def __init__(self):
-        self.value=None
-        self.formula=None
-        self.address=None
-        self.row=None
-        self.columns=None
-        self.calc_value=None
+        return self.graph_cells
+
+    @property
+    def getLabels(self):
+        labels=[]
+
+        for address in all_cells:
+            if address not in str(self.graph_cells):
+                labels.append(address)
+                print(self.excel.evaluate(address))
+        self.labels=labels
+
+        return self.labels
+
+    def validatePycel(self):
+        self.excel.validate_calcs()
+
 
 if __name__ ==  '__main__':
 
     xlsname = "../TestModel_v1.xlsx"
-    xlc = ExcelCompiler()
-    wb_formula = xlc.load_excel(xlsname, data_only=False)
-    wb_val = xlc.load_excel(xlsname, data_only=True)
-    all_cells = xlc.getCells(wb_formula, wb_val)
+    xlc = Saturn(xlsname)
+    wb = xlc.load_excel(data_only=False)
+    all_cells = xlc.getCells(wb)
+    xlc.initializePycel(all_cells)
+    graph_addrs = xlc.processGraph()
+    print(xlc.getLabels)
+
+
+
+
+
+
+    # xlc.validatePycel()
+
+
+
+
+
+
+
+
     # computed_cells = xlc.calculateCells(all_cells)
 
