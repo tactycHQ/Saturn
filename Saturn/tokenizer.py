@@ -4,6 +4,9 @@ This module contains a tokenizer for Excel formulae.
 The tokenizer is based on the Javascript tokenizer found at
 http://ewbi.blogs.com/develops/2004/12/excel_formula_p.html written by Eric
 Bachtal
+
+This tokenizer has also been amended to reflect the changes by pycel at
+https://github.com/dgorissen/pycel
 """
 
 import re
