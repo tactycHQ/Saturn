@@ -6,11 +6,11 @@ from openpyxl.formula import Tokenizer
 
 
 #open the .xls file
-xlsname="../TestModel_v1.xlsx"
+xlsname = "../Test Models/LP_India Model vF.xlsx"
 wb = load_workbook(filename=xlsname, data_only=False)
-sheet = wb['Sheet1']
-val = sheet['C2'].value
-print(val)
+for sheet in wb.sheetnames:
+    val = sheet['C2'].value
+    print(val)
 
-tok = Tokenizer(val)
-print(t for t in tok.items)
+# tok = Tokenizer(val)
+# print(t for t in tok.items)
