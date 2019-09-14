@@ -45,6 +45,7 @@ class Loader:
     def makeCells(self):
         self.cells = []
         for (k, v), (k2, f) in zip(self.val_dict.items(), self.form_dict.items()):
+            print("Making {} with formula {}".format(k,f))
             cell= Cell(k)
             cell.value = self.val_dict[k]
             cell.formula = self.form_dict[k]

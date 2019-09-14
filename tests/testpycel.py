@@ -2,21 +2,21 @@ from pycel.excelcompiler import ExcelCompiler
 from pycel.excelutil import AddressCell, AddressRange
 import time
 
-# import logging
-# logging.basicConfig()
-# logging.getLogger().setLevel(logging.DEBUG)
+import logging
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
 
-xlsname = "../Test Models/iflix Business Plan Financial Model June 2017.xlsx"
+xlsname = "../Test Models/TestModel_v1.xlsx"
 
 start = time.time()
 excel = ExcelCompiler(xlsname)
-end = time.time()
-print(end-start)
+# end = time.time()
+# print(end-start)
 # flex = 'Sheet1!C4'
 # cell1 ='Sheet1!C6'
-print("Starting")
+# print("Starting")
 
-cell2 ='SSA.Summary!I26'
+cell2 ='Sheet1!A1'
 
 
 
@@ -30,10 +30,10 @@ cell2 ='SSA.Summary!I26'
 
 
 # excel.evaluate(cell1)
-start = time.time()
+# start = time.time()
 print(excel.evaluate(cell2))
-end = time.time()
-print(end-start)
+# end = time.time()
+# print(end-start)
 # print(excel.cell_map)
 # # excel.set_value(flex,200)
 # # print(excel.evaluate(set))

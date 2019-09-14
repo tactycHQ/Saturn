@@ -1,5 +1,4 @@
-from tokenizer import Tokenizer, Token
-from pycel.excelformula import ExcelFormula
+from formulaconverter import Formula
 
 class Cell:
 
@@ -21,8 +20,5 @@ class Cell:
     @formula.setter
     def formula(self, excel_formula):
         self._formula = excel_formula
-        self._rpn = self.parseFormula(self.formula)
+        self._rpn = Formula(self.formula)
 
-    def parseFormula(self, expression):
-        e = ExcelFormula(self.formula)
-        # print(e._parse_to_rpn(self.formula))
