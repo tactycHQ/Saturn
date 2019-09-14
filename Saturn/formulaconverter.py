@@ -1,5 +1,19 @@
 from tokenizer import Tokenizer, Token
 
+"""
+The make_rpn function has been taken from pycel's implementation of the _parse_to_rpn
+The Tokenizer and Token is also taken from pycel's implementation - which itself is an amendment to openpyxl's Tokenizer and Token implementation 
+
+The algorithm is as follows:
+1. Tokenize an Excel Formula into list of tokens
+2. Pass list of tokens to shunting yard algo to create a rpn formula
+3. Create an AST comprising of [] [] [] - the AST is created by the shunting yard algorithm itself.
+
+https://www.reddit.com/r/learnprogramming/comments/3cybca/how_do_i_go_about_building_an_ast_from_an_infix/ 
+
+"""
+
+
 class Formula():
 
     def __init__(self, xl_formula):
