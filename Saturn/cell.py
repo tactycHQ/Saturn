@@ -1,3 +1,5 @@
+import logging
+logging.basicConfig(level=logging.INFO)
 from formulaconverter import Formula
 
 class Cell:
@@ -20,6 +22,14 @@ class Cell:
     @formula.setter
     def formula(self, excel_formula):
         self._formula = excel_formula
-        if str(excel_formula).startswith('='):
-           self._rpn = Formula(self.formula)
+        logging.debug("Processing RPN for formula {} at cell {}".format(excel_formula,self))
+
+        try:
+            if str(excel_formula).startswith('='):
+                self._rpn = Formula(self.formula)
+            else:
+                logging.debug("Formula does not start with = or +")
+                pass
+        except Exception as ex:
+            logging.error("Unable to parse formula {} at all".format(excel_formula))
 
