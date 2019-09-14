@@ -3,6 +3,9 @@ logging.basicConfig(level=logging.INFO)
 from formulaconverter import Formula
 
 class Cell:
+    """
+    Class responsible for creating cell objects
+    """
 
     def __init__(self ,address):
         self.address = address
