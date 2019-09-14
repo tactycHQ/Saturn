@@ -6,11 +6,22 @@ from tqdm import tqdm
 
 
 class Loader:
+    """
+    Class responsible for injecting an xlsx file and converting the file into Cell objects.
+    1. Injects an xlsx file
+    2. Uses openpyxl to convert extract formulas and value from each cell
+    3. Instantiates Cell objects for each cell extracted
+    """
 
     def __init__(self, file):
+        '''
+
+        @param file: xlsx file
+        '''
         self.file = file
         logging.info("Loading excel file...")
 
+        #Load file in read-only mode for faster execution. Need to read twice to extract formulas separately (Is there a better way?)
         self.wb_data_only = load_workbook(filename=self.file, data_only=True, read_only=True)
         logging.info("Values Loaded...")
 
