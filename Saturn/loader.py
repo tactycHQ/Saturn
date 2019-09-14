@@ -57,7 +57,7 @@ class Loader:
 
 if __name__ ==  '__main__':
 
-    xlsname = "../Test Models/TestModel_v1.xlsx"
+    xlsname = "Book3.xlsx"
     # xlsname = "../Test Models/LP_LatAm Model vF.xlsx"
     excel = Loader(xlsname)
     excel.getCells()

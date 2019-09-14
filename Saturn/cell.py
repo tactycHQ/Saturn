@@ -20,5 +20,6 @@ class Cell:
     @formula.setter
     def formula(self, excel_formula):
         self._formula = excel_formula
-        self._rpn = Formula(self.formula)
+        if str(excel_formula).startswith('='):
+           self._rpn = Formula(self.formula)
 

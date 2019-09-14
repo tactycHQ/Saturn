@@ -118,7 +118,7 @@ class Formula():
                     output.append(f)
 
             else:
-                assert token.type == token.WSPACE or token.LITERAL, \
+                assert token.type == token.WSPACE, \
                     'Unexpected token: {}'.format(token)
 
         while stack:
