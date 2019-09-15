@@ -1,5 +1,5 @@
 import logging
-logging.basicConfig(level=logging.ERROR)
+logger = logging.getLogger(__name__)
 from openpyxl import load_workbook, workbook
 from cell import Cell
 from tqdm import tqdm

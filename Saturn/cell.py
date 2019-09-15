@@ -1,10 +1,10 @@
 import logging
-logging.basicConfig(level=logging.INFO)
-from formulaconverter import Formula
+logger = logging.getLogger(__name__)
+from formula import ExceltoPython
 
 class Cell:
     """
-    Class responsible for creating cell objects
+    Class responsible for creating cell objects from source addresses
     """
 
     def __init__(self ,address):
@@ -41,10 +41,11 @@ class Cell:
 
         try:
             if str(excel_formula).startswith(('=','+')):
-                self._rpn = Formula(self.formula)
+                self._rpn = ExceltoPython(self.formula)
             else:
                 logging.debug("Formula does not start with = or +")
                 pass
         except Exception as ex:
-            logging.error("Unable to parse formula {} at all".format(excel_formula))
+            logging.error("Unable to parse formula at {} with formula as {}".format(self.address,excel_formula))
+
 

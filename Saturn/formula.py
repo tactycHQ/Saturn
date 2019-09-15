@@ -1,4 +1,8 @@
+import logging
+logger = logging.getLogger(__name__)
 from tokenizer import Tokenizer, Token
+from ast_tree import ASTNode
+
 
 """
 The make_rpn function has been taken from pycel's implementation of the _parse_to_rpn
@@ -10,14 +14,17 @@ The algorithm is as follows:
 3. Create an AST comprising of [] [] [] - the AST is created by the shunting yard algorithm itself.
 
 https://www.reddit.com/r/learnprogramming/comments/3cybca/how_do_i_go_about_building_an_ast_from_an_infix/ 
-
 """
 
 
-class Formula():
+class ExceltoPython():
+    '''
+    Class responsible for converting an excel formula to its RPN notation
+    '''
 
     def __init__(self, xl_formula):
         self.rpn_formula = self.make_rpn(xl_formula)
+
 
     def make_rpn(self, expression):
         """
@@ -28,7 +35,16 @@ class Formula():
             algorithm-to-allow-variable-numbers-of-arguments-to-functions/
         """
 
+        """
+                Parse an excel formula expression into reverse polish notation
+
+                Core algorithm taken from wikipedia with varargs extensions from
+                http://www.kallisti.net.nz/blog/2008/02/extension-to-the-shunting-yard-
+                    algorithm-to-allow-variable-numbers-of-arguments-to-functions/
+                """
+
         lexer = Tokenizer(expression)
+        logging.info("Token created succesfully")
 
         # amend token stream to ease code production
         tokens = []
@@ -72,8 +88,7 @@ class Formula():
 
         for token in tokens:
             if token.type == token.OPERAND:
-
-                output.append(token)  # add node here
+                output.append(ASTNode.create(token))
                 if were_values:
                     were_values[-1] = True
 
@@ -91,7 +106,7 @@ class Formula():
             elif token.type == token.SEP:
 
                 while stack and (stack[-1].subtype != token.OPEN):
-                    output.append(stack.pop())  # add node here
+                    output.append(ASTNode.create(stack.pop()))
 
                 if not len(were_values):
                     raise FormulaParserError(
@@ -105,7 +120,7 @@ class Formula():
 
                 while stack and stack[-1].is_operator:
                     if token.precedence < stack[-1].precedence:
-                        output.append(stack.pop())  # add node here
+                        output.append(ASTNode.create(stack.pop()))
                     else:
                         break
 
@@ -118,7 +133,7 @@ class Formula():
             elif token.subtype == token.CLOSE:
 
                 while stack and stack[-1].subtype != Token.OPEN:
-                    output.append(stack.pop())  # add node here
+                    output.append(ASTNode.create(stack.pop()))
 
                 if not stack:
                     raise FormulaParserError(
@@ -127,7 +142,7 @@ class Formula():
                 stack.pop()
 
                 if stack and stack[-1].is_funcopen:
-                    f = self._ast_node(stack.pop())
+                    f = ASTNode.create(stack.pop())
                     f.num_args = arg_count.pop() + int(were_values.pop())
                     output.append(f)
 
@@ -139,7 +154,7 @@ class Formula():
             if stack[-1].subtype in (Token.OPEN, Token.CLOSE):
                 raise FormulaParserError("Mismatched or misplaced parentheses")
 
-            output.append(self._ast_node(stack.pop()))
+            output.append(ASTNode.create(stack.pop()))
 
         return output
 
@@ -166,7 +181,8 @@ if __name__ == '__main__':
         # '=SUM((D9:D11,(E9:E11,F9:F11)))',
         # '=IF(P5=1.0,"NA",IF(P5=2.0,"A",IF(P5=3.0,"B",IF(P5=4.0,"C",IF(P5=5.0,"D",IF(P5=6.0,"E",IF(P5=7.0,"F",IF(P5=8.0,"G"))))))))',
         # '={SUM(B2:D2*B3:D3)}',
-        '=SUM(123 + SUM(456) + (45<6))+456+789',
+        # '=SUM(123 + SUM(456) + (45<6))+456+789',
+        '=Sheet2!C3+1'
         # '=AVG(((((123 + 4 + AVG(A1:A2))))))',
 
         # E. W. Bachtal's test formulae
@@ -182,6 +198,4 @@ if __name__ == '__main__':
     for i in inputs:
         print("========================================")
         print("Formula:     " + i)
-        tok = Tokenizer(i)
-        for t in tok.items:
-            print("Pretty printed:\n", t.value, t.type, t.subtype)
+        tok = ExceltoPython(i)
