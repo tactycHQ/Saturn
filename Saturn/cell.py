@@ -1,4 +1,5 @@
 import logging
+import traceback
 logger = logging.getLogger(__name__)
 from formula import ExceltoPython
 
@@ -39,13 +40,14 @@ class Cell:
         self._formula = excel_formula
         logging.debug("Processing RPN for formula {} at cell {}".format(excel_formula,self))
 
-        try:
-            if str(excel_formula).startswith(('=','+')):
-                self._rpn = ExceltoPython(self.formula)
-            else:
-                logging.debug("Formula does not start with = or +")
-                pass
-        except Exception as ex:
-            logging.error("Unable to parse formula at {} with formula as {}".format(self.address,excel_formula))
+        # try:
+        if str(excel_formula).startswith(('=','+')):
+           self._rpn = ExceltoPython(self.formula)
+        else:
+           logging.debug("Formula does not start with = or +")
+           pass
+        # except Exception as ex:
+        #     print(traceback.format_exc())
+        #     logging.error("Unable to parse formula at {} with formula as {}".format(self.address,excel_formula))
 
 

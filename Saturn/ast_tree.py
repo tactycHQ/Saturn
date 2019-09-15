@@ -1,4 +1,5 @@
 import logging
+from tokenizer import Token
 logger = logging.getLogger(__name__)
 
 class ASTNode:
@@ -21,14 +22,19 @@ class ASTNode:
 
         if token.type == Token.OPERAND:
             if token.subtype == Token.RANGE:
+                logging.debug("Creating RangeNode for: {}".format(token))
                 return RangeNode(token, cell)
+
             else:
+                logging.debug("Creating OperandNode for: {}".format(token))
                 return OperandNode(token, cell)
 
         elif token.is_funcopen:
+            logging.debug("Creating FunctionNode for: {}".format(token))
             return FunctionNode(token, cell)
 
         elif token.is_operator:
+            logging.debug("Creating OperatorNode for: {}".format(token))
             return OperatorNode(token, cell)
 
         raise FormulaParserError('Unknown token type: {}'.format(repr(token)))
@@ -162,6 +168,7 @@ class RangeNode(OperandNode):
 
     def _emit(self, value=None):
         # resolve the range into cells
+
         sheet = self.cell and self.cell.sheet or ''
         value = value is not None and value or self.value
         if '!' in value:

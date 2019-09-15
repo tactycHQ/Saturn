@@ -8,7 +8,9 @@ def main():
     xlsname = "../Test Models/TestModel_v1.xlsx"
     excel = Loader(xlsname)
     excel.getCells()
-    excel.makeCells()
+
+    addr = 'Sheet1!C6'
+    excel.makeCell(addr)
 
 
 if __name__ ==  '__main__':

@@ -44,7 +44,7 @@ class ExceltoPython():
                 """
 
         lexer = Tokenizer(expression)
-        logging.info("Token created succesfully")
+        logging.info("Tokens created succesfully")
 
         # amend token stream to ease code production
         tokens = []

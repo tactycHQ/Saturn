@@ -43,7 +43,7 @@ class Loader:
             for row in self.wb_data_only[sheet].iter_rows():
                 for cell in row:
                     if cell.value is not None:
-                        logging.debug(cell.coordinate)
+                        # logging.debug(cell.coordinate)
                         address = "{}!{}".format(sheet,cell.coordinate)
                         val_dict[address] = cell.value
 
@@ -52,7 +52,7 @@ class Loader:
             for row in self.wb_formulas[sheet].iter_rows():
                 for cell in row:
                     if cell.value is not None:
-                        logging.debug(cell.coordinate)
+                        # logging.debug(cell.coordinate)
                         address = "{}!{}".format(sheet, cell.coordinate)
                         form_dict[address] = cell.value
 
@@ -73,14 +73,24 @@ class Loader:
         '''
         self.cells = []
         for (k, v), (k2, f) in zip(self.val_dict.items(), self.form_dict.items()):
-            logging.debug("Making {} with formula {}".format(k,f))
-            cell= Cell(k)
-            cell.value = self.val_dict[k]
-            cell.formula = self.form_dict[k]
+            cell= self.makeCell(k)
             self.cells.append(cell)
-        logging.info("Values and formulas combined into one cell for {} cells".format(len(self.cells)))
+        logging.info("{} Cell objects created".format(len(self.cells)))
 
         return self.cells
+
+    def makeCell(self, address):
+        '''
+        Wrapper function that instantiates 1 Cell object for each extracted cell
+        @return: Returns self.cells, a list of Cell objects, created
+        '''
+        cell= Cell(address)
+        logging.info("Making cell...")
+        cell.value = self.val_dict[address]
+        cell.formula = self.form_dict[address]
+        logging.info("1 Cell object created")
+
+        return cell
 
 
 
