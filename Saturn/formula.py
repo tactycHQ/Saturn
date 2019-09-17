@@ -180,7 +180,7 @@ class ExceltoPython():
 
             output.append(self.make_node(stack.pop()))
 
-        print("RPN is: {}".format(output))
+        logging.info("RPN is: {}".format(output))
         return output
 
 

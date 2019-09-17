@@ -83,14 +83,14 @@ class Loader:
     def makeCell(self, address):
         '''
         Wrapper function that instantiates 1 Cell object for each extracted cell
-        @return: Returns self.cells, a list of Cell objects, created
+        @return: Returns the cell object
         '''
         cell= Cell(address)
         logging.info("Making cell {}".format(address))
 
         cell.value = self.val_dict[address]
         cell.formula = self.form_dict[address]
-        logging.info("1 Cell object created")
+        logging.info("1 Cell object created for {}".format(address))
 
         return cell
 

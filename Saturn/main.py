@@ -9,7 +9,7 @@ def main():
     excel = Loader(xlsname)
     excel.getCells()
 
-    addr = 'Sheet3!B6'
+    addr = 'Sheet3!B8'
     cell = excel.makeCell(addr)
     ret = excel.evaluate(cell.tree)
     print("**** Value is: {}".format(ret))
