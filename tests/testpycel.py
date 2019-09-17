@@ -16,7 +16,7 @@ excel = ExcelCompiler(xlsname)
 # cell1 ='Sheet1!C6'
 # print("Starting")
 
-cell2 ='Sheet1!C6'
+cell2 ='Sheet3!B8'
 
 
 
@@ -31,11 +31,15 @@ cell2 ='Sheet1!C6'
 
 # excel.evaluate(cell1)
 # start = time.time()
-print(excel.evaluate(cell2))
+# print(excel.evaluate(cell2))
 # end = time.time()
 # print(end-start)
 # print(excel.cell_map)
-# # excel.set_value(flex,200)
+print(excel.evaluate(cell2))
+print("----------")
+excel.set_value('Sheet3!B4',2)
+print("----------")
+print(excel.evaluate(cell2))
 # # print(excel.evaluate(set))
 # # excel.recalculate()
 # val1 = excel.evaluate(cell1)

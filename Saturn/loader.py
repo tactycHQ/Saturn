@@ -70,6 +70,7 @@ class Loader:
         '''
         Wrapper function that instantiates Cell objects for each extracted cell
         @return: Returns self.cells, a list of Cell objects, created
+        TODO: Don't makecells for all cells! Only makecell for the ones you need.
         '''
         self.cells = []
         for (k, v), (k2, f) in zip(self.val_dict.items(), self.form_dict.items()):
@@ -85,12 +86,40 @@ class Loader:
         @return: Returns self.cells, a list of Cell objects, created
         '''
         cell= Cell(address)
-        logging.info("Making cell...")
+        logging.info("Making cell {}".format(address))
+
         cell.value = self.val_dict[address]
         cell.formula = self.form_dict[address]
         logging.info("1 Cell object created")
 
         return cell
+
+    def evaluate(self, tree):
+
+        root = list(tree.nodes).pop()
+        children = list(tree.predecessors(root))
+
+        if not children:
+            c = self.makeCell(root.token.value)
+            ret = c.value
+        else:
+            for child in children:
+                print("---In {}---".format(child.token.value))
+                self.evaluate(child)
+
+        return ret
+
+
+    # def traverseCell(self,cell):
+    #     tree = cell.tree
+    #
+    #     for node in tree:
+    #         print(node.token.type)
+
+
+
+
+
 
 
 

@@ -9,8 +9,10 @@ def main():
     excel = Loader(xlsname)
     excel.getCells()
 
-    addr = 'Sheet1!C6'
-    excel.makeCell(addr)
+    addr = 'Sheet3!B6'
+    cell = excel.makeCell(addr)
+    ret = excel.evaluate(cell.tree)
+    print("**** Value is: {}".format(ret))
 
 
 if __name__ ==  '__main__':

@@ -1,7 +1,8 @@
 import logging
 logger = logging.getLogger(__name__)
 from tokenizer import Tokenizer, Token
-from ast_tree import ASTNode
+from ast_ import ASTNode, OperatorNode, RangeNode, OperandNode, FunctionNode
+from networkx.classes.digraph import DiGraph
 
 
 """
@@ -22,8 +23,30 @@ class ExceltoPython():
     Class responsible for converting an excel formula to its RPN notation
     '''
 
-    def __init__(self, xl_formula):
-        self.rpn_formula = self.make_rpn(xl_formula)
+    def __init__(self, cell):
+
+        self.cell = cell
+        self.rpn_formula = self.make_rpn(cell.formula)
+        self.tree = self.build_ast(self.rpn_formula)
+
+
+    def make_node(self,token):
+        return ASTNode.create(token)
+
+
+    def addSheetName(self,token):
+        '''
+        Adds sheet name to OPERAND RANGE tokens. Basically converts B5 to Sheet!B5
+        @param token:
+        @return:
+        '''
+        sheet = self.cell.address.split('!')[0]
+
+        if token.type == Token.OPERAND and token.subtype == Token.RANGE and '!' not in token.value:
+            token.value = '{}!{}'.format(sheet,token.value)
+            return token
+        else:
+            return token
 
 
     def make_rpn(self, expression):
@@ -86,9 +109,10 @@ class ExceltoPython():
         were_values = []
         arg_count = []
 
+        #shunting yard start
         for token in tokens:
             if token.type == token.OPERAND:
-                output.append(ASTNode.create(token))
+                output.append(self.make_node((self.addSheetName(token))))
                 if were_values:
                     were_values[-1] = True
 
@@ -106,7 +130,7 @@ class ExceltoPython():
             elif token.type == token.SEP:
 
                 while stack and (stack[-1].subtype != token.OPEN):
-                    output.append(ASTNode.create(stack.pop()))
+                    output.append(self.make_node(stack.pop()))
 
                 if not len(were_values):
                     raise FormulaParserError(
@@ -120,7 +144,7 @@ class ExceltoPython():
 
                 while stack and stack[-1].is_operator:
                     if token.precedence < stack[-1].precedence:
-                        output.append(ASTNode.create(stack.pop()))
+                        output.append(self.make_node(stack.pop()))
                     else:
                         break
 
@@ -133,7 +157,7 @@ class ExceltoPython():
             elif token.subtype == token.CLOSE:
 
                 while stack and stack[-1].subtype != Token.OPEN:
-                    output.append(ASTNode.create(stack.pop()))
+                    output.append(self.make_node(stack.pop()))
 
                 if not stack:
                     raise FormulaParserError(
@@ -142,7 +166,7 @@ class ExceltoPython():
                 stack.pop()
 
                 if stack and stack[-1].is_funcopen:
-                    f = ASTNode.create(stack.pop())
+                    f = self.make_node((stack.pop()))
                     f.num_args = arg_count.pop() + int(were_values.pop())
                     output.append(f)
 
@@ -154,9 +178,70 @@ class ExceltoPython():
             if stack[-1].subtype in (Token.OPEN, Token.CLOSE):
                 raise FormulaParserError("Mismatched or misplaced parentheses")
 
-            output.append(ASTNode.create(stack.pop()))
+            output.append(self.make_node(stack.pop()))
 
+        print("RPN is: {}".format(output))
         return output
+
+
+    @classmethod
+    def build_ast(cls, rpn_expression):
+        """build an AST from an Excel formula
+
+        :param rpn_expression: a string formula or the result of parse_to_rpn()
+        :return: AST which can be used to generate code
+        """
+
+        # use a directed graph to store the syntax tree
+        tree = DiGraph()
+
+        # production stack
+        stack = []
+
+        for node in rpn_expression:
+            # The graph does not maintain the order of adding nodes/edges, so
+            # add an attribute 'pos' so we can always sort to the correct order
+
+            # node.ast = tree
+            if isinstance(node, OperatorNode):
+                if node.token.type == node.token.OP_IN:
+                    try:
+                        arg2 = stack.pop()
+                        arg1 = stack.pop()
+                    except IndexError:
+                        raise FormulaParserError(
+                            "'{}' operator missing operand".format(
+                                node.token.value))
+                    tree.add_node(arg1, pos=0)
+                    tree.add_node(arg2, pos=1)
+                    tree.add_edge(arg1, node)
+                    tree.add_edge(arg2, node)
+                else:
+                    try:
+                        arg1 = stack.pop()
+                    except IndexError:
+                        raise FormulaParserError(
+                            "'{}' operator missing operand".format(
+                                node.token.value))
+                    tree.add_node(arg1, pos=1)
+                    tree.add_edge(arg1, node)
+
+            elif isinstance(node, FunctionNode):
+                if node.num_args:
+                    args = stack[-node.num_args:]
+                    del stack[-node.num_args:]
+                    for i, a in enumerate(args):
+                        tree.add_node(a, pos=i)
+                        tree.add_edge(a, node)
+            else:
+                tree.add_node(node, pos=0)
+            stack.append(node)
+
+        assert 1 == len(stack)
+
+        return tree
+
+
 
 if __name__ == '__main__':
 
@@ -182,7 +267,10 @@ if __name__ == '__main__':
         # '=IF(P5=1.0,"NA",IF(P5=2.0,"A",IF(P5=3.0,"B",IF(P5=4.0,"C",IF(P5=5.0,"D",IF(P5=6.0,"E",IF(P5=7.0,"F",IF(P5=8.0,"G"))))))))',
         # '={SUM(B2:D2*B3:D3)}',
         # '=SUM(123 + SUM(456) + (45<6))+456+789',
-        '=Sheet2!C3+1'
+        # '=Sheet2!C3+1',
+        '=SUM(B5,B7)+5',
+        # '1',
+        # 'TEST'
         # '=AVG(((((123 + 4 + AVG(A1:A2))))))',
 
         # E. W. Bachtal's test formulae
@@ -198,4 +286,18 @@ if __name__ == '__main__':
     for i in inputs:
         print("========================================")
         print("Formula:     " + i)
-        tok = ExceltoPython(i)
+        rpn = ExceltoPython.make_rpn(i)
+        print('-------RPN-------')
+        print(rpn)
+        print('-------TREE-------')
+        tree = ExceltoPython.build_ast(rpn)
+
+        all_nodes = list(tree.nodes())
+
+        root = (all_nodes.pop())
+        print(list(tree.predecessors(root)))
+
+        # for root.
+
+        # print(tree.edges)
+

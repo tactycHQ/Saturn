@@ -4,4 +4,7 @@ def asum(a,b):
     return a+b
 
 ret = lambda x,y: asum(x,y)
-print(ret(1,2))
+lam = 'lambda x,y: asum(x,y)'
+
+x = eval(lam)(2,2)
+print(x)
