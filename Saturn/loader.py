@@ -5,6 +5,7 @@ from openpyxl import load_workbook, workbook
 from ast_ import ASTNode, OperatorNode, RangeNode, OperandNode, FunctionNode
 from cell import Cell
 from tqdm import tqdm
+import networkx as nx
 
 OP_MAP = {
     '+': '+',
@@ -180,42 +181,49 @@ class Loader:
         @return: Value of calculation
         '''
 
-        logging.info(">>>  Evaluating cell {} with RPN {}".format(cell.address, cell.rpn))
+        logging.info("******** Evaluating cell {} with RPN {}".format(cell.address, cell.rpn))
+        logging.info("******** {}".format(cell.__dict__))
 
         #Build AST Tree
         cell.build_ast()
         tree = cell.tree
-        logging.info("Compiled tree is {}".format(tree.nodes))
+        logging.info("***** Compiled tree is {}".format(tree.nodes))
+
+
+        print(tree.nodes)
+        print(nx.dfs_successors(tree))
+
+
+
 
         # Check if this node is already a hardcode
         # if tree.number_of_nodes() == 1:
         #     for root in tree:
         #         ret = self.getvalue(root.token.value)
         #         logging.info("No child found. Storing value {}".format(ret))
-        if cell.hardcode:
+        if cell.hardcode is True:
+            logging.info("****Found a hardcode at {} with value {}".format(cell.address, cell.value))
             ret = cell.value
-            logging.info("Hardcode: ".format(ret))
         else:
 
             args = []
             ops = []
 
             for node in tree:
-                logging.info("****** Processing node {} *******".format(node.token.value))
+                logging.info("**** Processing node {} *******".format(node.token.value))
                 if isinstance(node, OperatorNode):
                     op = OP_MAP[node.token.value]
 
                 if isinstance(node, OperandNode):
-                    logging.info(">>>  Found and evaluating child {}".format(node.token.value))
+                    logging.info("**** Found and evaluating child {}".format(node.token.value))
                     child_value = self.evaluate(self.getCell(node.token.value))
-                    logging.info("Child value is: ".format(child_value))
 
                     #Keep track of argument order
                     args.append(child_value)
                     pos = tree.node[node]['pos']
 
             eval_str = '{}{}{}'.format(args[0], op[0], args[1])
-            logging.info(eval_str)
+            logging.info('Python code is: {}'.format(eval_str))
             ret = eval(eval_str)
 
         #Set cell value to new calculated value
