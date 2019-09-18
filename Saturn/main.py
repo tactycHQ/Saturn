@@ -4,15 +4,22 @@ import logging
 def main():
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
+    # logger.setLevel(logging.ERROR)
 
-    xlsname = "TestModel_v1.xlsx"
+    xlsname = "TestModel_v2.xlsx"
+    # xlsname = "../Test Models/TestModel_v1.xlsx"
+    # xlsname = "../Test Models/LP_LatAm Model vF.xlsx"
+
     excel = Loader(xlsname)
-    excel.getCells()
+    set_addr = 'Sheet3!D4'
+    addr = 'Sheet3!D5'
+    # c = excel.getCell(addr)
+    # val = excel.evaluate(c)
+    # print(val)
 
-    addr = 'Sheet3!B8'
-    cell = excel.makeCell(addr)
-    # ret = excel.evaluate(cell)
-    # print("**** Value is: {}".format(ret))
+    # addr = 'Returns!D5'
+    excel.setvalue(4,set_addr)
+    print(excel.getvalue(addr))
 
 
 if __name__ ==  '__main__':

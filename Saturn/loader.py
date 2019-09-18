@@ -1,4 +1,5 @@
 import logging
+
 logger = logging.getLogger(__name__)
 from openpyxl import load_workbook, workbook
 from ast_ import ASTNode, OperatorNode, RangeNode, OperandNode, FunctionNode
@@ -6,10 +7,11 @@ from cell import Cell
 from tqdm import tqdm
 
 OP_MAP = {
-    '+':'+',
-    '-':'-',
-    '*':'*'
+    '+': '+',
+    '-': '-',
+    '*': '*'
 }
+
 
 class Loader:
     """
@@ -27,7 +29,7 @@ class Loader:
         self.file = file
         logging.info("Loading excel file...")
 
-        #Load file in read-only mode for faster execution. Need to read twice to extract formulas separately (Is there a better way?)
+        # Load file in read-only mode for faster execution. Need to read twice to extract formulas separately (Is there a better way?)
         self.wb_data_only = load_workbook(filename=self.file, data_only=True, read_only=True)
         logging.info("Values Loaded...")
 
@@ -36,14 +38,22 @@ class Loader:
 
         logging.info("Excel file loaded")
 
-        self.cellmap={}
+        self.cells = {}
+        self.precMap = {}
+        self.depMap = {}
 
-    def getCells(self):
+        #Parse cells for value
+        self.parseCells()
+
+        #Make cells with just RPN for now. AST tree has not been compiled yet
+        self.makeCells()
+
+    def parseCells(self):
         '''
         Extraction of values and formulas from each source cell
         @return: Generates a val_dict for values extracted and form_dict for formulas extracted
         '''
-        val_dict={}
+        val_dict = {}
         form_dict = {}
 
         logging.info("Extracting values from cells")
@@ -51,8 +61,7 @@ class Loader:
             for row in self.wb_data_only[sheet].iter_rows():
                 for cell in row:
                     if cell.value is not None:
-                        # logging.debug(cell.coordinate)
-                        address = "{}!{}".format(sheet,cell.coordinate)
+                        address = "{}!{}".format(sheet, cell.coordinate)
                         val_dict[address] = cell.value
 
         logging.info("Extracting formulas from cells")
@@ -67,9 +76,9 @@ class Loader:
         logging.info("Retrieved list of {} values".format(len(val_dict)))
         logging.info("Retrieved list of {} formulas".format(len(form_dict)))
 
-        #Test that values extracted match formulas extracted
-        assert len(val_dict) == len (form_dict),\
-            "Extraction Mismatch - Formulas extracted:{}, Valued extracted:{}".format(len(form_dict),len(val_dict))
+        # Test that values extracted match formulas extracted
+        assert len(val_dict) == len(form_dict), \
+            "Extraction Mismatch - Formulas extracted:{}, Valued extracted:{}".format(len(form_dict), len(val_dict))
 
         self.val_dict = val_dict
         self.form_dict = form_dict
@@ -79,86 +88,143 @@ class Loader:
         Wrapper function that instantiates Cell objects for each extracted cell
         @return: Returns self.cells, a list of Cell objects, created
         '''
-        self.cells = []
         for (k, v), (k2, f) in zip(self.val_dict.items(), self.form_dict.items()):
-            cell= self.makeCell(k)
-            self.cells.append(cell)
-        logging.info("{} Cell objects created".format(len(self.cells)))
+            cell = self.makeCell(k)
+        logging.info("--------{} total cell objects created------------".format(len(self.cells)))
 
-        return self.cells
+        # Now that all cells are created, go ahead and create dependency map
+        self.createDepMap()
 
     def makeCell(self, address):
         '''
         Wrapper function that instantiates 1 Cell object for each extracted cell
         @return: Returns the cell object
         '''
-        if address not in self.cellmap:
-            cell= Cell(address)
-            logging.info("-----Not in cellmap, so making cell {}------".format(address))
-
+        if address not in self.cells:
+            cell = Cell(address)
+            logging.info("Not in cellmap, so making cell {}".format(address))
             cell.value = self.val_dict[address]
             cell.formula = self.form_dict[address]
-            logging.info("1 Cell object created for {}".format(address))
+            logging.info("1 cell object created for {} with value {}".format(address, cell.value))
 
-            self.cellmap[cell.address]=cell
+            #Update master cell dictionary
+            self.cells[cell.address] = cell
+
+            # Update master precedent dictionary
+            self.precMap.update({address: cell.prec})
             return cell
 
         else:
             logging.info('-----Found {} in cellmap----'.format(address))
-            return self.cellmap[address]
+            return self.cells[address]
+
+    def getCell(self, address):
+        '''
+        Returns a cell object at a specified address
+        @param address: address
+        '''
+        try:
+            return self.cells[address]
+        except Exception as ex:
+            logging.info("No cell found")
+
+    def getvalue(self,address):
+        return self.getCell(address).value
+
+    def setvalue(self, newvalue, address):
+        '''
+        Sets value of a cell to a specified new value
+        @param newvalue: New value to be set
+        @param address: Cell to be set
+        '''
+
+        # Set value of cell object to neew value
+        cell = self.getCell(address)
+        cell.value = newvalue
+
+        # Update master cell list with new cell
+        self.cells[address] = cell
+        logging.info("Value in cell {} set to {}".format(address, newvalue))
+
+        # Update dependent cells
+        self.updateDepCells(address)
+
+    def createDepMap(self):
+        '''
+        Creates computed list of dependents from the precedent map
+        @return: Updates a dictionary of precedents with format {address: [list of dependent addresses]}
+        '''
+        for address, precedents in self.precMap.items():
+            for prec in precedents:
+                self.depMap.setdefault(prec, []).append(address)
+
+    def updateDepCells(self, address):
+        '''
+        Update all dependent cells for a given address
+        @param address: Address of source cell that has been changed
+        @return:
+        '''
+        dep_addrs = self.depMap[address]
+        logging.info("Updating dependent cells {}".format(dep_addrs))
+
+        for addrs in dep_addrs:
+            dep = self.getCell(addrs)
+            self.evaluate(dep)
 
 
 
-    def evaluate(self,cell):
+    def evaluate(self, cell):
+        '''
+        Calculates the formula in a cell
+        @param cell: Cell to be calculated
+        @return: Value of calculation
+        '''
 
+        logging.info(">>>  Evaluating cell {} with RPN {}".format(cell.address, cell.rpn))
 
-        logging.info(">>>  Evaluating cell {}".format(cell.address))
+        #Build AST Tree
+        cell.build_ast()
         tree = cell.tree
-        logging.info("The tree is {}".format(tree.nodes))
-        print(tree.edges)
+        logging.info("Compiled tree is {}".format(tree.nodes))
 
         # Check if this node is already a hardcode
-        if tree.number_of_nodes() == 1:
-            for root in tree:
-                c = self.makeCell(root.token.value)
-                ret = c.value
-                logging.info("No child found. Storing value {}".format(ret))
+        # if tree.number_of_nodes() == 1:
+        #     for root in tree:
+        #         ret = self.getvalue(root.token.value)
+        #         logging.info("No child found. Storing value {}".format(ret))
+        if cell.hardcode:
+            ret = cell.value
+            logging.info("Hardcode: ".format(ret))
         else:
-            args =[]
+
+            args = []
             ops = []
+
             for node in tree:
                 logging.info("****** Processing node {} *******".format(node.token.value))
                 if isinstance(node, OperatorNode):
                     op = OP_MAP[node.token.value]
-                    # calc_val = self.evaluateTree()
 
-                if isinstance(node, RangeNode):
+                if isinstance(node, OperandNode):
                     logging.info(">>>  Found and evaluating child {}".format(node.token.value))
-                    child_cell = self.makeCell(node.token.value)
-                    child_value = self.evaluate(child_cell)
+                    child_value = self.evaluate(self.getCell(node.token.value))
+                    logging.info("Child value is: ".format(child_value))
+
+                    #Keep track of argument order
                     args.append(child_value)
                     pos = tree.node[node]['pos']
 
-            eval_str='{}{}{}'.format(args[0],op[0],args[1])
+            eval_str = '{}{}{}'.format(args[0], op[0], args[1])
+            logging.info(eval_str)
             ret = eval(eval_str)
 
+        #Set cell value to new calculated value
+        cell.value = ret
+
         return ret
-
-
-
 
     # def traverseCell(self,cell):
     #     tree = cell.tree
     #
     #     for node in tree:
     #         print(node.token.type)
-
-
-
-
-
-
-
-
-
-
