@@ -1,9 +1,15 @@
 import logging
 logger = logging.getLogger(__name__)
 from openpyxl import load_workbook, workbook
+from ast_ import ASTNode, OperatorNode, RangeNode, OperandNode, FunctionNode
 from cell import Cell
 from tqdm import tqdm
 
+OP_MAP = {
+    '+':'+',
+    '-':'-',
+    '*':'*'
+}
 
 class Loader:
     """
@@ -29,6 +35,8 @@ class Loader:
         logging.info("Formulas Loaded...")
 
         logging.info("Excel file loaded")
+
+        self.cellmap={}
 
     def getCells(self):
         '''
@@ -70,7 +78,6 @@ class Loader:
         '''
         Wrapper function that instantiates Cell objects for each extracted cell
         @return: Returns self.cells, a list of Cell objects, created
-        TODO: Don't makecells for all cells! Only makecell for the ones you need.
         '''
         self.cells = []
         for (k, v), (k2, f) in zip(self.val_dict.items(), self.form_dict.items()):
@@ -85,29 +92,59 @@ class Loader:
         Wrapper function that instantiates 1 Cell object for each extracted cell
         @return: Returns the cell object
         '''
-        cell= Cell(address)
-        logging.info("Making cell {}".format(address))
+        if address not in self.cellmap:
+            cell= Cell(address)
+            logging.info("-----Not in cellmap, so making cell {}------".format(address))
 
-        cell.value = self.val_dict[address]
-        cell.formula = self.form_dict[address]
-        logging.info("1 Cell object created for {}".format(address))
+            cell.value = self.val_dict[address]
+            cell.formula = self.form_dict[address]
+            logging.info("1 Cell object created for {}".format(address))
 
-        return cell
+            self.cellmap[cell.address]=cell
+            return cell
 
-    def evaluate(self, tree):
-
-        root = list(tree.nodes).pop()
-        children = list(tree.predecessors(root))
-
-        if not children:
-            c = self.makeCell(root.token.value)
-            ret = c.value
         else:
-            for child in children:
-                print("---In {}---".format(child.token.value))
-                self.evaluate(child)
+            logging.info('-----Found {} in cellmap----'.format(address))
+            return self.cellmap[address]
+
+
+
+    def evaluate(self,cell):
+
+
+        logging.info(">>>  Evaluating cell {}".format(cell.address))
+        tree = cell.tree
+        logging.info("The tree is {}".format(tree.nodes))
+        print(tree.edges)
+
+        # Check if this node is already a hardcode
+        if tree.number_of_nodes() == 1:
+            for root in tree:
+                c = self.makeCell(root.token.value)
+                ret = c.value
+                logging.info("No child found. Storing value {}".format(ret))
+        else:
+            args =[]
+            ops = []
+            for node in tree:
+                logging.info("****** Processing node {} *******".format(node.token.value))
+                if isinstance(node, OperatorNode):
+                    op = OP_MAP[node.token.value]
+                    # calc_val = self.evaluateTree()
+
+                if isinstance(node, RangeNode):
+                    logging.info(">>>  Found and evaluating child {}".format(node.token.value))
+                    child_cell = self.makeCell(node.token.value)
+                    child_value = self.evaluate(child_cell)
+                    args.append(child_value)
+                    pos = tree.node[node]['pos']
+
+            eval_str='{}{}{}'.format(args[0],op[0],args[1])
+            ret = eval(eval_str)
 
         return ret
+
+
 
 
     # def traverseCell(self,cell):

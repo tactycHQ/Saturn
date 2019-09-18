@@ -19,6 +19,7 @@ class Cell:
         """
         self.address = address
         self.value = None
+        self.dep = None
         self.hardcode = None
         self._formula = None
         self.row_field = None
@@ -49,8 +50,8 @@ class Cell:
         if str(excel_formula).startswith(('=','+')):
            f = ExceltoPython(self)
            self.rpn = f.rpn_formula
-           self.tree = f.tree
            self.hardcode = False
+           self.dep = f.dep
         else:
             logging.debug("Formula does not start with = or +. Creating a hardcode cell")
             self.tree = DiGraph()
@@ -77,8 +78,6 @@ class Cell:
     #     code.append(make_cod)
     #
     #     return code
-
-
 
     def calculate(self):
         lam = 'lambda {}:{}'.format(args, python_code)

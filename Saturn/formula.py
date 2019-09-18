@@ -1,4 +1,6 @@
 import logging
+from typing import List, Any
+
 logger = logging.getLogger(__name__)
 from tokenizer import Tokenizer, Token
 from ast_ import ASTNode, OperatorNode, RangeNode, OperandNode, FunctionNode
@@ -20,33 +22,20 @@ https://www.reddit.com/r/learnprogramming/comments/3cybca/how_do_i_go_about_buil
 
 class ExceltoPython():
     '''
-    Class responsible for converting an excel formula to its RPN notation
-    '''
+    Class responsible for converting an excel formula to its RPN notation    '''
+
 
     def __init__(self, cell):
-
         self.cell = cell
         self.rpn_formula = self.make_rpn(cell.formula)
-        self.tree = self.build_ast(self.rpn_formula)
-
 
     def make_node(self,token):
-        return ASTNode.create(token)
-
-
-    def addSheetName(self,token):
-        '''
-        Adds sheet name to OPERAND RANGE tokens. Basically converts B5 to Sheet!B5
-        @param token:
-        @return:
-        '''
         sheet = self.cell.address.split('!')[0]
-
         if token.type == Token.OPERAND and token.subtype == Token.RANGE and '!' not in token.value:
-            token.value = '{}!{}'.format(sheet,token.value)
-            return token
+            token.value = '{}!{}'.format(sheet, token.value)
+            return ASTNode.create(token)
         else:
-            return token
+            return ASTNode.create(token)
 
 
     def make_rpn(self, expression):
@@ -112,7 +101,7 @@ class ExceltoPython():
         #shunting yard start
         for token in tokens:
             if token.type == token.OPERAND:
-                output.append(self.make_node((self.addSheetName(token))))
+                output.append(self.make_node(token))
                 if were_values:
                     were_values[-1] = True
 
