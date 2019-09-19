@@ -13,6 +13,10 @@ OP_MAP = {
     '*': '*'
 }
 
+FUNC_MAP = {
+    'sum': 'xsum'
+}
+
 
 class Loader:
     """
@@ -185,51 +189,124 @@ class Loader:
         logging.info("******** {}".format(cell.__dict__))
 
         #Build AST Tree
-        cell.build_ast()
-        tree = cell.tree
-        logging.info("***** Compiled tree is {}".format(tree.nodes))
+        # cell.build_ast()
+        tree = cell.rpn
+
+        stack = []
+
+        for node in tree:
+            if isinstance(node, OperatorNode):
+                arg2 = stack.pop()
+                arg1 = stack.pop()
+                op = OP_MAP[node.token.value]
+                eval_str = '{}{}{}'.format(arg1, op, arg2)
+                result = eval(eval_str)
+                stack.append(result)
+
+            elif isinstance(node,FunctionNode):
+                if node.num_args:
+                    args = stack[-node.num_args:]
+                    # print(stack)
+                    del stack[-node.num_args:]
+                    # for i, a in enumerate(args):
+                    # eval_str = 'lambda x,y,z:{}+{}+{}'.format(args[0],args[1],args[2])
+                    # result = eval(eval_str)
+                    result = args[0]+args[1]+args[2]
+                    stack.append(result)
+                        # tree.add_node(a, pos=i)
+                        # tree.add_edge(a, node)
+
+            else:
+                stack.append(self.getCell(node.token.value).value)
+
+        result = stack.pop()
 
 
-        print(tree.nodes)
-        print(nx.dfs_successors(tree))
 
 
 
+        #Set cell value to new calculated value
+        cell.value = result
+        return result
+
+
+        # print(tree.edges)
+        # allnodes = tree.nodes
+        # print(allnodes)
 
         # Check if this node is already a hardcode
         # if tree.number_of_nodes() == 1:
         #     for root in tree:
         #         ret = self.getvalue(root.token.value)
         #         logging.info("No child found. Storing value {}".format(ret))
-        if cell.hardcode is True:
-            logging.info("****Found a hardcode at {} with value {}".format(cell.address, cell.value))
-            ret = cell.value
-        else:
+        # if cell.hardcode is True:
+        #     logging.info("****Found a hardcode at {} with value {}".format(cell.address, cell.value))
+        #     ret = cell.value
+        # else:
+        #
+        #     args = []
+        #     ops = []
+        #
+        #     for node in tree:
+        #         logging.info("**** Processing node {} *******".format(node.token.value))
+        #         if isinstance(node, OperatorNode):
+        #             ops.append(OP_MAP[node.token.value])
+        #
+        #         if isinstance(node, FunctionNode):
+        #             fn = FUNC_MAP[node.token.value]
+        #
+        #         if isinstance(node, OperandNode):
+        #             logging.info("**** Found and evaluating child {}".format(node.token.value))
+        #             child_value = self.evaluate(self.getCell(node.token.value))
+        #
+        #             #Keep track of argument order
+        #             args.append(child_value)
+        #             pos = tree.node[node]['pos']
+        #
+        #     eval_str = '{}{}{}'.format(args[0], ops[0], args[1])
+        #     logging.info('Python code is: {}'.format(eval_str))
+        #     ret = eval(eval_str)
+        #
+        # #Set cell value to new calculated value
+        # cell.value = ret
+        #
+        # return ret
 
-            args = []
-            ops = []
-
-            for node in tree:
-                logging.info("**** Processing node {} *******".format(node.token.value))
-                if isinstance(node, OperatorNode):
-                    op = OP_MAP[node.token.value]
-
-                if isinstance(node, OperandNode):
-                    logging.info("**** Found and evaluating child {}".format(node.token.value))
-                    child_value = self.evaluate(self.getCell(node.token.value))
-
-                    #Keep track of argument order
-                    args.append(child_value)
-                    pos = tree.node[node]['pos']
-
-            eval_str = '{}{}{}'.format(args[0], op[0], args[1])
-            logging.info('Python code is: {}'.format(eval_str))
-            ret = eval(eval_str)
-
-        #Set cell value to new calculated value
-        cell.value = ret
-
-        return ret
+    # def evaluate2(self, rpn):
+    #     '''
+    #     Calculates the formula in a cell
+    #     @param cell: Cell to be calculated
+    #     @return: Value of calculation
+    #     '''
+    #
+    #     logging.info("******** Evaluating cell {} with RPN {}".format(cell.address, cell.rpn))
+    #     logging.info("******** {}".format(cell.__dict__))
+    #
+    #
+    #     if cell.hardcode is True:
+    #         logging.info("****Found a hardcode at {} with value {}".format(cell.address, cell.value))
+    #         ret = cell.value
+    #     else:
+    #         for i, node in enumerate(rpn):
+    #             if isinstance(node,OperatorNode):
+    #                 op = OP_MAP[node.token.value]
+    #                 arg1 = rpn[i-2]
+    #                 arg2 = rpn[i-1]
+    #             if isinstance(node, OperandNode):
+    #                 child_value = self.evaluate2(self.getCell(node.token.value))
+    #
+    #     eval_str = '{}{}{}'.format(arg1, ops[0], arg2)
+    #     logging.info('Python code is: {}'.format(eval_str))
+    #     ret = eval(eval_str)
+    #
+    #     # Set cell value to new calculated value
+    #     cell.value = ret
+    #     return ret
+    #
+    #     # # Set cell value to new calculated value
+    #     # cell.value = ret
+    #     #
+        # return ret
 
     # def traverseCell(self,cell):
     #     tree = cell.tree

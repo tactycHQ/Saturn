@@ -6,7 +6,7 @@ import logging
 logging.basicConfig()
 logging.getLogger().setLevel(logging.DEBUG)
 
-xlsname = "../Test Models/TestModel_v1.xlsx"
+xlsname = "../Saturn/TestModel_v2.xlsx"
 
 start = time.time()
 excel = ExcelCompiler(xlsname)
@@ -16,7 +16,7 @@ excel = ExcelCompiler(xlsname)
 # cell1 ='Sheet1!C6'
 # print("Starting")
 
-cell2 ='Sheet3!B8'
+cell2 ='Sheet3!D5'
 
 
 
@@ -37,7 +37,7 @@ cell2 ='Sheet3!B8'
 # print(excel.cell_map)
 print(excel.evaluate(cell2))
 print("----------")
-excel.set_value('Sheet3!B4',2)
+excel.set_value('Sheet3!D4',2)
 print("----------")
 print(excel.evaluate(cell2))
 # # print(excel.evaluate(set))
