@@ -173,10 +173,10 @@ class Loader:
         dep_addrs = self.depMap.get(address)
         logging.info("Updating dependent cells {}".format(dep_addrs))
 
-        for addrs in dep_addrs:
-            dep = self.getCell(addrs)
-            self.evaluate(dep)
-
+        if dep_addrs:
+            for addrs in dep_addrs:
+                dep = self.getCell(addrs)
+                self.evaluate(dep)
 
 
     def evaluate(self, cell):
