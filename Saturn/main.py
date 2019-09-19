@@ -21,6 +21,9 @@ def main():
     excel.setvalue(20,set_addr)
     print(excel.getvalue(addr))
 
+    print(excel.precMap)
+    print(excel.depMap)
+
 
 if __name__ ==  '__main__':
     main()
