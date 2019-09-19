@@ -209,9 +209,8 @@ class Loader:
                     # print(stack)
                     del stack[-node.num_args:]
                     # for i, a in enumerate(args):
-                    # eval_str = 'lambda x,y,z:{}+{}+{}'.format(args[0],args[1],args[2])
-                    # result = eval(eval_str)
-                    result = args[0]+args[1]+args[2]
+                    eval_str = 'lambda x,y,z:x+y+z'
+                    result = eval(eval_str)(args[0],args[1],args[2])
                     stack.append(result)
                         # tree.add_node(a, pos=i)
                         # tree.add_edge(a, node)
