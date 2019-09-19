@@ -217,66 +217,7 @@ class Cell:
             output.append(self.make_node(stack.pop()))
         return output
 
-    def build_ast(self):
-        """build an AST from an Excel formula
 
-        :param rpn_expression: a string formula or the result of parse_to_rpn()
-        :return: AST which can be used to generate code
-        """
-
-        # use a directed graph to store the syntax tree
-        tree = DiGraph()
-
-        # production stack
-        stack = []
-
-        for node in self.rpn:
-            # The graph does not maintain the order of adding nodes/edges, so
-            # add an attribute 'pos' so we can always sort to the correct order
-
-            # node.ast = tree
-            if isinstance(node, OperatorNode):
-                if node.token.type == node.token.OP_IN:
-                    try:
-                        arg2 = stack.pop()
-                        arg1 = stack.pop()
-                    except IndexError:
-                        raise FormulaParserError(
-                            "'{}' operator missing operand".format(
-                                node.token.value))
-                    tree.add_node(arg1, pos=0)
-                    tree.add_node(arg2, pos=1)
-                    tree.add_edge(arg1, node)
-                    tree.add_edge(arg2, node)
-                else:
-                    try:
-                        arg1 = stack.pop()
-                    except IndexError:
-                        raise FormulaParserError(
-                            "'{}' operator missing operand".format(
-                                node.token.value))
-                    tree.add_node(arg1, pos=1)
-                    tree.add_edge(arg1, node)
-
-            elif isinstance(node, FunctionNode):
-                if node.num_args:
-                    args = stack[-node.num_args:]
-                    del stack[-node.num_args:]
-                    for i, a in enumerate(args):
-                        tree.add_node(a, pos=i)
-                        tree.add_edge(a, node)
-            else:
-                tree.add_node(node, pos=0)
-            stack.append(node)
-
-        assert 1 == len(stack)
-
-        #Set tree attribute of cell object
-        self.tree = tree
-
-    def calculate(self):
-        lam = 'lambda {}:{}'.format(args, python_code)
-        print(lam)
 
 
 # if __name__ == "__main__":
