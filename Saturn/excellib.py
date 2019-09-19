@@ -930,3 +930,8 @@ def choose(index_num, *values): # Excel reference: https://support.office.com/en
         return ExcelError('#VALUE!', '%s must not be larger than the number of values: %s' % (str(index_num), len(values)))
     else:
         return values[index - 1]
+
+
+if __name__ == '__main__':
+
+    print(xsum('0.1','0.2','0.5'))

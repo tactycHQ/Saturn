@@ -206,10 +206,13 @@ class Loader:
                     del stack[-node.num_args:]
                     func = FUNC_MAP.get(node.token.value.strip('('))
                     temp_args=[]
+
                     for i,a in enumerate(args):
-                        temp_args.append(a)
+                        temp_args.append(float(a))
+
                     arg_str = '{}'.format(tuple(temp_args))
                     eval_str = '{}({})'.format(func, arg_str)
+                    logging.info(eval_str)
                     result = eval(eval_str)
                     stack.append(result)
 
