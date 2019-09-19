@@ -43,10 +43,15 @@ class Cell:
         self._formula = excel_formula
         logging.debug("Processing RPN for formula {} at cell {}".format(excel_formula,self))
 
+        #First check if formula starts with correct operator
         if str(excel_formula).startswith(('=','+')):
            self.rpn = self.make_rpn(excel_formula)
            self.hardcode = False
-           self.createPrec() # creates list of precedents (who do I depend on)
+
+           # creates list of precedents (who do I depend on)
+           self.createPrec()
+
+        # This means formula must be a hardcode
         else:
             logging.debug("Formula does not start with = or +. Creating a hardcode cell")
             tok = Token(self.address,Token.LITERAL,None)

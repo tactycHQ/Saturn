@@ -1,5 +1,5 @@
-from pycel.excelcompiler import ExcelCompiler
-from pycel.excelutil import AddressCell, AddressRange
+from pycel_.excelcompiler import ExcelCompiler
+from pycel_.excelutil import AddressCell, AddressRange
 import time
 
 import logging

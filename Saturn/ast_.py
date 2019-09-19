@@ -19,8 +19,6 @@ class ASTNode:
         elif token.is_operator:
             return OperatorNode(token)
 
-    # def __str__(self):
-    #     return str(self.token.value.strip('('))
     def __repr__(self):
         return '{}<{}>'.format(type(self).__name__,
                                str(self.token.value.strip('(')))

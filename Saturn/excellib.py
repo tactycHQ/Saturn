@@ -4,10 +4,10 @@ Python equivalents of various excel functions
 import math
 from bisect import bisect_right
 from decimal import Decimal, ROUND_HALF_UP, ROUND_UP
-
+import operator
 import numpy as np
 
-from pycel.excelutil import (
+from pycel_.excelutil import (
     build_wildcard_re,
     coerce_to_number,
     DIV0,
@@ -25,11 +25,25 @@ from pycel.excelutil import (
     REF_ERROR,
     VALUE_ERROR,
 )
-from pycel.lib.function_helpers import (
+from pycel_.lib.function_helpers import (
     excel_helper,
     excel_math_func,
 )
 
+OP_MAP = {
+    '+': '+',
+    '-': '-',
+    '*': '*',
+    '/': '/',
+    "^": "**",
+    "=": "==",
+    "<>": "!=",
+}
+
+FUNC_MAP = {
+    'SUM': 'xsum',
+    'MIN': 'xmin'
+}
 
 def _numerics(*args, keep_bools=False):
     # ignore non numeric cells

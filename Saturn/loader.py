@@ -7,18 +7,6 @@ from cell import Cell
 from tqdm import tqdm
 from excellib import *
 
-OP_MAP = {
-    '+': '+',
-    '-': '-',
-    '*': '*'
-}
-
-FUNC_MAP = {
-    'SUM': 'xsum',
-    'MIN': 'xmin'
-}
-
-
 class Loader:
     """
     Class responsible for injecting an xlsx file and converting the file into Cell objects.
@@ -124,6 +112,15 @@ class Loader:
             logging.info('-----Found {} in cellmap----'.format(address))
             return self.cells.get(address)
 
+    def createDepMap(self):
+        '''
+        Creates computed list of dependents from the precedent map
+        @return: Updates a dictionary of precedents with format {address: [list of dependent addresses]}
+        '''
+        for address, precedents in self.precMap.items():
+            for prec in precedents:
+                self.depMap.setdefault(prec, []).append(address)
+
     def getCell(self, address):
         '''
         Returns a cell object at a specified address
@@ -135,6 +132,11 @@ class Loader:
             logging.info("No cell found")
 
     def getvalue(self,address):
+        '''
+        Gets value of cell
+        @param address: address of desired cell's value
+        @return: cell value
+        '''
         return self.getCell(address).value
 
     def setvalue(self, newvalue, address):
@@ -144,7 +146,7 @@ class Loader:
         @param address: Cell to be set
         '''
 
-        # Set value of cell object to neew value
+        # Set value of cell object to new value
         cell = self.getCell(address)
         cell.value = newvalue
 
@@ -152,17 +154,8 @@ class Loader:
         self.cells[address] = cell
         logging.info("Value in cell {} set to {}".format(address, newvalue))
 
-        # Update dependent cells
+        # Update dependent cells values
         self.updateDepCells(address)
-
-    def createDepMap(self):
-        '''
-        Creates computed list of dependents from the precedent map
-        @return: Updates a dictionary of precedents with format {address: [list of dependent addresses]}
-        '''
-        for address, precedents in self.precMap.items():
-            for prec in precedents:
-                self.depMap.setdefault(prec, []).append(address)
 
     def updateDepCells(self, address):
         '''
@@ -173,15 +166,17 @@ class Loader:
         dep_addrs = self.depMap.get(address)
         logging.info("Updating dependent cells {}".format(dep_addrs))
 
+        # First check if the cell is hardcode. If it is, then it will have no dependents
         if dep_addrs:
             for addrs in dep_addrs:
                 dep = self.getCell(addrs)
-                self.evaluate(dep)
+                self.calculate(dep)
+        else:
+            pass
 
-
-    def evaluate(self, cell):
+    def calculate(self, cell):
         '''
-        Calculates the formula in a cell
+        Calculates the formula in a cell using post order traversal of RPN
         @param cell: Cell to be calculated
         @return: Value of calculation
         '''
@@ -192,18 +187,19 @@ class Loader:
         stack = []
 
         for node in tree:
-            logging.info("Stack is: {}".format(stack))
-
             logging.info("Processing node: {}".format(node))
+
+            #OPERATOR NODE
             if isinstance(node, OperatorNode):
                 arg2 = stack.pop()
                 arg1 = stack.pop()
                 op = OP_MAP.get(node.token.value)
-                eval_str = '{}{}{}'.format(arg1, op, arg2)
+                eval_str = '''{}{}{}'''.format(arg1, op, arg2)
                 result = eval(eval_str)
                 stack.append(result)
                 logging.info("Found operator node with value {}".format(node.token.value))
 
+            #FUNCTION NODE
             elif isinstance(node,FunctionNode):
                 if node.num_args:
                     args = stack[-node.num_args:]
@@ -216,16 +212,23 @@ class Loader:
                     eval_str = '{}({})'.format(func, arg_str)
                     result = eval(eval_str)
                     stack.append(result)
+
+            #OPERAND NODE
             else:
+                #NUMBER NODE SUBTYPE
                 if node.token.subtype == 'NUMBER':
                     stack.append(node.token.value)
                     logging.info("Found number node with value {}".format(node.token.value))
+                #RANGE NODE SUBTYPE
                 else:
                     stack.append(self.getCell(node.token.value).value)
                     logging.info("Found range node with value {}".format(self.getCell(node.token.value).value))
 
+            logging.info("Stack is: {}".format(stack))
+
+        #Get final result from remaining value in stack
+        assert len(stack) == 1, 'More than 1 remaining value in stack. Recheck the stack algorithm'
         result = stack.pop()
 
         #Set cell value to new calculated value
         cell.value = result
-        return result
