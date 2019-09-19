@@ -22,7 +22,7 @@ def main():
     # print(val)
 
     # addr = 'Returns!D5'
-    excel.setvalue(100,set_addr)
+    excel.setvalue(0.35,set_addr)
     print(excel.getvalue(addr))
 
 
