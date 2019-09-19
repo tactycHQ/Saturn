@@ -187,12 +187,14 @@ class Loader:
         '''
 
         logging.info("******** Evaluating cell {} with RPN {}".format(cell.address, cell.rpn))
-        logging.info("******** {}".format(cell.__dict__))
 
         tree = cell.rpn
         stack = []
 
         for node in tree:
+            logging.info("Stack is: {}".format(stack))
+
+            logging.info("Processing node: {}".format(node))
             if isinstance(node, OperatorNode):
                 arg2 = stack.pop()
                 arg1 = stack.pop()
@@ -200,6 +202,7 @@ class Loader:
                 eval_str = '{}{}{}'.format(arg1, op, arg2)
                 result = eval(eval_str)
                 stack.append(result)
+                logging.info("Found operator node with value {}".format(node.token.value))
 
             elif isinstance(node,FunctionNode):
                 if node.num_args:
@@ -214,7 +217,12 @@ class Loader:
                     result = eval(eval_str)
                     stack.append(result)
             else:
-                stack.append(self.getCell(node.token.value).value)
+                if node.token.subtype == 'NUMBER':
+                    stack.append(node.token.value)
+                    logging.info("Found number node with value {}".format(node.token.value))
+                else:
+                    stack.append(self.getCell(node.token.value).value)
+                    logging.info("Found range node with value {}".format(self.getCell(node.token.value).value))
 
         result = stack.pop()
 

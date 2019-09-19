@@ -103,6 +103,7 @@ class Cell:
                 """
 
         lexer = Tokenizer(expression)
+
         logging.info("Tokens created succesfully")
 
         # amend token stream to ease code production

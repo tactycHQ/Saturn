@@ -11,8 +11,8 @@ def main():
     # xlsname = "../Test Models/LP_LatAm Model vF.xlsx"
 
     excel = Loader(xlsname)
-    print(excel.precMap)
-    print(excel.depMap)
+    # print(excel.precMap)
+    # print(excel.depMap)
 
 
     set_addr = 'Sheet3!F5'
