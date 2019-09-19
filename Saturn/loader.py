@@ -205,8 +205,8 @@ class Loader:
                     args = stack[-node.num_args:]
                     del stack[-node.num_args:]
                     func = FUNC_MAP.get(node.token.value.strip('('))
-                    temp_args=[]
 
+                    temp_args=[]
                     for i,a in enumerate(args):
                         temp_args.append(float(a))
 
@@ -220,11 +220,11 @@ class Loader:
             else:
                 #NUMBER NODE SUBTYPE
                 if node.token.subtype == 'NUMBER':
-                    stack.append(node.token.value)
+                    stack.append(float(node.token.value))
                     logging.info("Found number node with value {}".format(node.token.value))
                 #RANGE NODE SUBTYPE
                 else:
-                    stack.append(self.getCell(node.token.value).value)
+                    stack.append(float(self.getCell(node.token.value).value))
                     logging.info("Found range node with value {}".format(self.getCell(node.token.value).value))
 
             logging.info("Stack is: {}".format(stack))
