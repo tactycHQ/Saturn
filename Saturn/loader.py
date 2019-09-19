@@ -5,7 +5,7 @@ from openpyxl import load_workbook, workbook
 from ast_ import ASTNode, OperatorNode, RangeNode, OperandNode, FunctionNode
 from cell import Cell
 from tqdm import tqdm
-import networkx as nx
+from excellib import *
 
 OP_MAP = {
     '+': '+',
@@ -14,7 +14,8 @@ OP_MAP = {
 }
 
 FUNC_MAP = {
-    'sum': 'xsum'
+    'SUM': 'xsum',
+    'MIN': 'xmin'
 }
 
 
@@ -108,8 +109,8 @@ class Loader:
         if address not in self.cells:
             cell = Cell(address)
             logging.info("Not in cellmap, so making cell {}".format(address))
-            cell.value = self.val_dict[address]
-            cell.formula = self.form_dict[address]
+            cell.value = self.val_dict.get(address)
+            cell.formula = self.form_dict.get(address)
             logging.info("1 cell object created for {} with value {}".format(address, cell.value))
 
             #Update master cell dictionary
@@ -121,7 +122,7 @@ class Loader:
 
         else:
             logging.info('-----Found {} in cellmap----'.format(address))
-            return self.cells[address]
+            return self.cells.get(address)
 
     def getCell(self, address):
         '''
@@ -129,7 +130,7 @@ class Loader:
         @param address: address
         '''
         try:
-            return self.cells[address]
+            return self.cells.get(address)
         except Exception as ex:
             logging.info("No cell found")
 
@@ -169,7 +170,7 @@ class Loader:
         @param address: Address of source cell that has been changed
         @return:
         '''
-        dep_addrs = self.depMap[address]
+        dep_addrs = self.depMap.get(address)
         logging.info("Updating dependent cells {}".format(dep_addrs))
 
         for addrs in dep_addrs:
@@ -195,7 +196,7 @@ class Loader:
             if isinstance(node, OperatorNode):
                 arg2 = stack.pop()
                 arg1 = stack.pop()
-                op = OP_MAP[node.token.value]
+                op = OP_MAP.get(node.token.value)
                 eval_str = '{}{}{}'.format(arg1, op, arg2)
                 result = eval(eval_str)
                 stack.append(result)
@@ -203,15 +204,15 @@ class Loader:
             elif isinstance(node,FunctionNode):
                 if node.num_args:
                     args = stack[-node.num_args:]
-                    # print(stack)
                     del stack[-node.num_args:]
-                    # for i, a in enumerate(args):
-                    eval_str = 'lambda x,y,z:x+y+z'
-                    result = eval(eval_str)(args[0],args[1],args[2])
+                    func = FUNC_MAP.get(node.token.value.strip('('))
+                    temp_args=[]
+                    for i,a in enumerate(args):
+                        temp_args.append(a)
+                    arg_str = '{}'.format(tuple(temp_args))
+                    eval_str = '{}({})'.format(func, arg_str)
+                    result = eval(eval_str)
                     stack.append(result)
-                        # tree.add_node(a, pos=i)
-                        # tree.add_edge(a, node)
-
             else:
                 stack.append(self.getCell(node.token.value).value)
 
