@@ -84,19 +84,20 @@ class Loader:
         '''
         for (k, v), (k2, f) in zip(self.val_dict.items(), self.form_dict.items()):
             cell = self.makeCell(k)
-        logging.info("--------{} total cell objects created------------".format(len(self.cells)))
+        logging.info("\n\n\n\n--------{} total cell objects created------------\n\n\n\n".format(len(self.cells)))
 
         # Now that all cells are created, go ahead and create dependency map
         self.createDepMap()
 
     def makeCell(self, address):
+        logging.info("IN MAKE CELL")
         '''
         Wrapper function that instantiates 1 Cell object for each extracted cell
         @return: Returns the cell object
         '''
         if address not in self.cells:
             cell = Cell(address)
-            logging.info("Not in cellmap, so making cell {}".format(address))
+            logging.info("\n\nNot in cellmap, so making cell {}".format(address))
             cell.value = self.val_dict.get(address)
             cell.formula = self.form_dict.get(address)
             logging.info("1 cell object created for {} with value {}".format(address, cell.value))
@@ -149,10 +150,12 @@ class Loader:
         @param newvalue: New value to be set
         @param address: Cell to be set
         '''
-
         # Set value of cell object to new value
         cell = self.getCell(address)
         cell.value = newvalue
+
+        #Set needs_calc to False
+        cell.needs_calc = False
 
         # Update master cell list with new cell
         self.cells[address] = cell
@@ -169,6 +172,7 @@ class Loader:
         '''
 
         # Set value of cell object to new value
+        logging.info("IN SET FORMULA")
         cell = self.getCell(address)
         cell.formula = newform
 
@@ -183,33 +187,41 @@ class Loader:
         @param address: Address of source cell that has been changed
         @return:
         '''
-        dep_addrs = self.depMap.get(address)
 
+        dep_addrs = self.depMap.get(address)
 
         # First check if there any dependents. No dependents if cell is an output
         if dep_addrs:
-            logging.info("Updating dependent cells {}".format(dep_addrs))
+            logging.info("Found dependents at {}".format(dep_addrs))
             for addrs in dep_addrs:
                 dep = self.getCell(addrs)
-                self.calculate(dep)
+                if dep.needs_calc:
+                    self.calculate(dep)
+                    logging.info("Calculating dependent cell {}".format(dep.address))
+                else:
+                    logging.info("Already calculated dependent cell {}".format(dep.address))
         else:
             logging.info("No more dependent cells found.")
-            pass
+            # pass
 
     def calculate(self, cell):
+        logging.info("Calculating cell {}".format(cell.address))
         '''
         Calculates the formula in a cell using post order traversal of RPN
         @param cell: Cell to be calculated
         @return: Value of calculation
         '''
 
-        logging.info("******** Evaluating cell {} with RPN {}".format(cell.address, cell.rpn))
+        logging.info("\n\n******** Evaluating cell {} with RPN {}".format(cell.address, cell.rpn))
 
         tree = cell.rpn
         stack = []
 
         for node in tree:
-            logging.info("Processing node: {}".format(node))
+            logging.info("Processing node: {} of type {} and subtype {} and value {}".format(node,
+                                                                                             node.token.type,
+                                                                                             node.token.subtype,
+                                                                                             node.token.value))
 
             #Operator Node
             if isinstance(node, OperatorNode):
@@ -221,6 +233,7 @@ class Loader:
                     result = eval(eval_str)
                     stack.append(result)
                     logging.info("Found operator node with value {}".format(node.token.value))
+
                 else:
                     arg1 = stack.pop()
                     op = OP_MAP.get(node.token.value)
@@ -238,7 +251,6 @@ class Loader:
                     temp_args=[]
                     for i,a in enumerate(args):
                         temp_args.append(a)
-
                     arg_str = '{}'.format(tuple(temp_args))
                     logging.info("Argument string is: {}".format(arg_str))
                     eval_str = '{}{}'.format(func, arg_str)
@@ -248,13 +260,18 @@ class Loader:
 
             #Operand Node - Number type
             elif node.token.subtype == 'NUMBER':
-                 stack.append(int(node.token.value))
+                 stack.append(node.token.value)
                  logging.info("Found number node with value {}".format(node.token.value))
+
+            # Operand Node - Logical type
+            elif node.token.subtype == 'LOGICAL':
+                 stack.append(node.token.value)
+                 logging.info("Found logical node with value {}".format(node.token.value))
 
             #Operand node - Range type
             else:
                 range_tuple = None
-                if len(node.rangeadds) > 1:
+                if any(isinstance(i, list) for i in node.rangeadds):
                     range_val = []
                     for adds in node.rangeadds:
                         slice_= []
@@ -262,6 +279,9 @@ class Loader:
                             slice_.append(self.getvalue(add))
                         range_val.append(tuple(slice_))
                         range_tuple = tuple(range_val)
+                        logging.info("Found range node {} with value {}".format(node.token.value, range_tuple))
+
+                # Operand node - Cell type
 
                 else:
                     range_val = []
@@ -271,7 +291,7 @@ class Loader:
 
                 stack.append(range_tuple)
 
-                logging.info("Found range node {} with value {}".format(node.token.value,range_tuple))
+
 
             logging.info("Stack is: {}".format(stack))
 

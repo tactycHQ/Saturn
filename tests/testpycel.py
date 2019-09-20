@@ -10,10 +10,10 @@ def main():
     xlsname = "C:/Users/anubhav/Desktop/Projects/Saturn/Saturn/TestModel_v2.xlsx"
 
     excel = ExcelCompiler(xlsname)
-    cell2 ='Sheet1!B8'
+    cell2 ='Sheet1!B5'
     excel.evaluate(cell2)
     print("----------")
-    excel.set_value('Sheet1!B7',1)
+    excel.set_value('Sheet1!B3',1)
     print("----------")
     print(excel.evaluate(cell2))
 

@@ -1,5 +1,6 @@
 import logging
 import traceback
+from fastnumbers import fast_real
 logger = logging.getLogger(__name__)
 from rpnnode import RPNNode, OperatorNode, RangeNode, OperandNode, FunctionNode
 from networkx.classes.digraph import DiGraph
@@ -22,6 +23,7 @@ class Cell:
         self._formula = None
         self.rpn = []
         self.tree = None
+        self.needs_calc = True
 
     def __repr__(self):
         '''Represents a cell object by outputting the address, value and excel formula'''
@@ -52,8 +54,12 @@ class Cell:
         # This means formula must be a hardcode
         else:
             logging.debug("Formula does not start with = or +. Creating a hardcode cell")
-            tok = Token(self.address,Token.LITERAL,None)
-            self.rpn.append(OperandNode(tok))
+            if isinstance(fast_real(self.address),str):
+                tok = Token(self.address,Token.OPERAND,"TEXT")
+                self.rpn.append(OperandNode(tok))
+            else:
+                tok = Token(self.address, Token.OPERAND, "NUMBER")
+                self.rpn.append(OperandNode(tok))
 
         logging.info("RPN is: {}".format(self.rpn))
 
@@ -63,12 +69,10 @@ class Cell:
                 self.prec.extend(node.prec_in_range)
 
     def make_node(self, token):
+
         sheet = self.address.split('!')[0]
-        if token.type == Token.OPERAND and token.subtype == Token.RANGE and '!' not in token.value:
-            token.value = '{}!{}'.format(sheet, token.value)
-            return RPNNode.create(token)
-        else:
-            return RPNNode.create(token)
+        return RPNNode.create(token, sheet)
+
 
     def make_rpn(self, expression):
         """
@@ -88,8 +92,6 @@ class Cell:
                 """
 
         lexer = Tokenizer(expression)
-
-        logging.info("Tokens created succesfully")
 
         # amend token stream to ease code production
         tokens = []
@@ -133,6 +135,7 @@ class Cell:
 
         # shunting yard start
         for token in tokens:
+
             if token.type == token.OPERAND:
                 output.append(self.make_node(token))
                 if were_values:

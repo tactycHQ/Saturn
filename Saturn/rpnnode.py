@@ -1,3 +1,5 @@
+import logging
+from fastnumbers import fast_real
 from tokenizer import Token
 from openpyxl.utils import range_boundaries, get_column_letter
 
@@ -5,12 +7,24 @@ class RPNNode:
 
     def __init__(self,token):
         self.token = token
+        logging.info("Node created with token {} of {}, of type {}, and subtype {}".format(token.value, type(token.value),
+                                                                                  token.type,
+                                                                                  token.subtype))
 
     @classmethod
-    def create(self, token):
+    def create(self, token, sheet=None):
         if token.type == Token.OPERAND:
-            if token.subtype == Token.RANGE:
+            #First lets check if token is a range and have has no sheet, in which case add sheet name to token value
+            if token.subtype == Token.RANGE and '!' not in token.value:
+                token.value = '{}!{}'.format(sheet, token.value)
                 return RangeNode(token)
+
+            # Then lets check if token is a number, in which case update assign float or int to token value
+            elif token.subtype == Token.NUMBER:
+                token.value = fast_real(token.value)
+                return OperandNode(token)
+
+            # Token must be subtype Text, Logical or Error - in which case do nothing
             else:
                 return OperandNode(token)
 
@@ -21,8 +35,12 @@ class RPNNode:
             return OperatorNode(token)
 
     def __repr__(self):
-        return '{}<{}>'.format(type(self).__name__,
-                               str(self.token.value.strip('(')))
+        if isinstance(self.token.value, str):
+            return '{}<{}>'.format(type(self).__name__,
+                                   str(self.token.value.strip('(')))
+        else:
+            return '{}<{}>'.format(type(self).__name__,
+                                   self.token.value)
 
 class OperandNode(RPNNode):
     pass
@@ -34,7 +52,7 @@ class RangeNode(OperandNode):
         super().__init__(token)
         self.prec_in_range = None
         self.rangeadds = self.rangecells()
-        # print(self.rangeadds)
+
 
 
     def rangecells(self):
