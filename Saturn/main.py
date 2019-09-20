@@ -17,11 +17,9 @@ def main():
     set_addr = 'Sheet1!C3'
     addr = 'Sheet1!C9'
     # formula = '=SUM(E4:E6)+10'
-    excel.setvalue(0.0002,set_addr)
+    excel.setvalue(20,set_addr)
     # excel.setformula(formula,'Sheet1!E7')
     print("Final value: {}".format(excel.getvalue(addr)))
-
-
 
 
 if __name__ ==  '__main__':

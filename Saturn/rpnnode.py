@@ -36,9 +36,7 @@ class RangeNode(OperandNode):
         self.rangeadds = self.rangecells()
 
 
-
     def rangecells(self):
-        # if this is normal reference then just use the openpyxl converter
         if self.token.subtype == Token.RANGE:
             split_addrs = self.token.value.split('!')
             sheet = split_addrs[0]

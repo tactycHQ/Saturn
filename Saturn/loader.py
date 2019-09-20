@@ -137,7 +137,11 @@ class Loader:
         @param address: address of desired cell's value
         @return: cell value
         '''
-        return self.getCell(address).value
+        try:
+            return self.getCell(address).value
+        except:
+            logging.info("Empty cell found at {}. Setting value to zero".format(address))
+            return 0
 
     def setvalue(self, newvalue, address):
         '''
@@ -235,24 +239,33 @@ class Loader:
                     result = eval(eval_str)
                     stack.append(result)
 
-            #Operand Node
-            else:
-                #Number node subtype
-                if node.token.subtype == 'NUMBER':
-                    stack.append(int(node.token.value))
-                    logging.info("Found number node with value {}".format(node.token.value))
+            #Operand Node - Number type
+            elif node.token.subtype == 'NUMBER':
+                 stack.append(int(node.token.value))
+                 logging.info("Found number node with value {}".format(node.token.value))
 
-                #Range node subtype
-                else:
+            #Operatand node - Range type
+            else:
+
+                #check if range
+                if len(node.rangeadds) > 1:
+
                     range_val = []
                     for adds in node.rangeadds:
                         slice_= []
                         for add in adds:
-                            rcell = self.getCell(add)
-                            slice_.append(rcell.value)
-                        range_val.append(tuple(slice_))
+                            slice_.append(self.getvalue(add))
+                            range_val.append(tuple(slice_))
+                        range_tuple = tuple(range_val)
+
+                #if range is a cell case
+                else:
+                    range_val = []
+                    for adds in node.rangeadds:
+                        range_val.append(self.getvalue(add))
                     range_tuple = tuple(range_val)
 
+                    print(range_tuple)
                     stack.append(range_tuple)
                     logging.info("Found range node {} with value {}".format(node.token.value,range_tuple))
 
