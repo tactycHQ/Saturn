@@ -213,13 +213,20 @@ class Loader:
 
             #Operator Node
             if isinstance(node, OperatorNode):
-                arg2 = stack.pop()
-                arg1 = stack.pop()
-                op = OP_MAP.get(node.token.value)
-                eval_str = '''{}{}{}'''.format(arg1, op, arg2)
-                result = eval(eval_str)
-                stack.append(result)
-                logging.info("Found operator node with value {}".format(node.token.value))
+                if node.token.type == node.token.OP_IN:
+                    arg2 = stack.pop()
+                    arg1 = stack.pop()
+                    op = OP_MAP.get(node.token.value)
+                    eval_str = '''{}{}{}'''.format(arg1, op, arg2)
+                    result = eval(eval_str)
+                    stack.append(result)
+                    logging.info("Found operator node with value {}".format(node.token.value))
+                else:
+                    arg1 = stack.pop()
+                    op = OP_MAP.get(node.token.value)
+                    eval_str = '''{}{}'''.format(op, arg1)
+                    result = eval(eval_str)
+                    stack.append(result)
 
             #Function Node
             elif isinstance(node,FunctionNode):
@@ -244,30 +251,27 @@ class Loader:
                  stack.append(int(node.token.value))
                  logging.info("Found number node with value {}".format(node.token.value))
 
-            #Operatand node - Range type
+            #Operand node - Range type
             else:
-
-                #check if range
+                range_tuple = None
                 if len(node.rangeadds) > 1:
-
                     range_val = []
                     for adds in node.rangeadds:
                         slice_= []
                         for add in adds:
                             slice_.append(self.getvalue(add))
-                            range_val.append(tuple(slice_))
+                        range_val.append(tuple(slice_))
                         range_tuple = tuple(range_val)
 
-                #if range is a cell case
                 else:
                     range_val = []
-                    for adds in node.rangeadds:
-                        range_val.append(self.getvalue(add))
-                    range_tuple = tuple(range_val)
+                    adds = node.rangeadds[0][0]
+                    range_val = self.getvalue(adds)
+                    range_tuple = range_val
 
-                    print(range_tuple)
-                    stack.append(range_tuple)
-                    logging.info("Found range node {} with value {}".format(node.token.value,range_tuple))
+                stack.append(range_tuple)
+
+                logging.info("Found range node {} with value {}".format(node.token.value,range_tuple))
 
             logging.info("Stack is: {}".format(stack))
 

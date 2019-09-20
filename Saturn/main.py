@@ -14,10 +14,10 @@ def main():
     # print(excel.precMap)
     # print(excel.depMap)
 
-    set_addr = 'Sheet1!C3'
-    addr = 'Sheet1!C9'
+    set_addr = 'Sheet1!B7'
+    addr = 'Sheet1!B8'
     # formula = '=SUM(E4:E6)+10'
-    excel.setvalue(20,set_addr)
+    excel.setvalue(1,set_addr)
     # excel.setformula(formula,'Sheet1!E7')
     print("Final value: {}".format(excel.getvalue(addr)))
 

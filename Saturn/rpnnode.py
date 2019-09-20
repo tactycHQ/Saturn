@@ -34,6 +34,7 @@ class RangeNode(OperandNode):
         super().__init__(token)
         self.prec_in_range = None
         self.rangeadds = self.rangecells()
+        # print(self.rangeadds)
 
 
     def rangecells(self):
