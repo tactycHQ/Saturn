@@ -6,11 +6,17 @@ from fastnumbers import fast_real
 #     if None not in boundaries or ':' in address:
 #         return boundaries
 
+x= {
+    'a':[1,2,3],
+    'b':[4,5,6]
+}
 
-x = '1'
+y = 1
 
-y = fast_real(x)
-print(type(y))
+if y not in x.get('a'):
+    x['a'].append(y)
+
+print(x)
 
 
 # for y2 in x2:

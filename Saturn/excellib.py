@@ -43,7 +43,8 @@ OP_MAP = {
 FUNC_MAP = {
     'SUM': 'xsum',
     'MIN': 'xmin',
-    'VLOOKUP':'vlookup'
+    'VLOOKUP':'vlookup',
+    'MAX': 'xmax'
 }
 
 def _numerics(*args, keep_bools=False):
@@ -934,5 +935,6 @@ def choose(index_num, *values): # Excel reference: https://support.office.com/en
 
 
 if __name__ == '__main__':
-
-    print(xsum('0.1',('0.2','0.2'),'0.5'))
+    # com = "xmatch(5, ((5, 2), (5, 60), (10, 11), (15, 16), (20, 21), (25, 26)), 2, 'FALSE')"
+    com = "vlookup(5, ((5, 2), (5, 60), (10, 11), (15, 16), (20, 21), (25, 26)), 2, False)"
+    print(eval(com))

@@ -2,7 +2,7 @@ import logging
 import traceback
 from fastnumbers import fast_real
 logger = logging.getLogger(__name__)
-from rpnnode import RPNNode, OperatorNode, RangeNode, OperandNode, FunctionNode
+from rpnnode import RPNNode, OperatorNode, RangeNode, OperandNode, FunctionNode, CellNode
 from networkx.classes.digraph import DiGraph
 from tokenizer import Tokenizer, Token
 
@@ -57,6 +57,7 @@ class Cell:
             if isinstance(fast_real(self.address),str):
                 tok = Token(self.address,Token.OPERAND,"TEXT")
                 self.rpn.append(OperandNode(tok))
+                self.needs_calc = False
             else:
                 tok = Token(self.address, Token.OPERAND, "NUMBER")
                 self.rpn.append(OperandNode(tok))
@@ -67,6 +68,8 @@ class Cell:
         for node in self.rpn:
             if isinstance(node,RangeNode):
                 self.prec.extend(node.prec_in_range)
+            elif isinstance(node,CellNode):
+                self.prec.append(node.prec_in_range)
 
     def make_node(self, token):
 

@@ -7,7 +7,7 @@ class RPNNode:
 
     def __init__(self,token):
         self.token = token
-        logging.info("Node created with token {} of {}, of type {}, and subtype {}".format(token.value, type(token.value),
+        logging.info("{} created with token {} of {}, of type {}, and subtype {}".format(self.__class__.__name__,token.value, type(token.value),
                                                                                   token.type,
                                                                                   token.subtype))
 
@@ -15,13 +15,21 @@ class RPNNode:
     def create(self, token, sheet=None):
         if token.type == Token.OPERAND:
             #First lets check if token is a range and have has no sheet, in which case add sheet name to token value
-            if token.subtype == Token.RANGE and '!' not in token.value:
+            if token.subtype == Token.RANGE and '!' not in token.value and ':' in token.value:
                 token.value = '{}!{}'.format(sheet, token.value)
                 return RangeNode(token)
+
+            elif token.subtype == Token.RANGE and '!' not in token.value and ':' not in token.value:
+                token.value = '{}!{}'.format(sheet, token.value)
+                return CellNode(token)
 
             # Then lets check if token is a number, in which case update assign float or int to token value
             elif token.subtype == Token.NUMBER:
                 token.value = fast_real(token.value)
+                return OperandNode(token)
+
+            elif token.subtype == Token.LOGICAL:
+                token.value = token.value == 'TRUE'
                 return OperandNode(token)
 
             # Token must be subtype Text, Logical or Error - in which case do nothing
@@ -45,6 +53,12 @@ class RPNNode:
 class OperandNode(RPNNode):
     pass
 
+
+class CellNode(OperandNode):
+    def __init__(self, token):
+        super().__init__(token)
+        self.prec_in_range = token.value
+        self.rangeadds = token.value
 
 
 class RangeNode(OperandNode):

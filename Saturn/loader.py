@@ -2,7 +2,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 from openpyxl import load_workbook, workbook
-from rpnnode import RPNNode, OperatorNode, RangeNode, OperandNode, FunctionNode
+from rpnnode import RPNNode, OperatorNode, RangeNode, OperandNode, FunctionNode, CellNode
 from cell import Cell
 from tqdm import tqdm
 from excellib import *
@@ -139,7 +139,14 @@ class Loader:
         @return: cell value
         '''
         try:
-            return self.getCell(address).value
+            cell = self.getCell(address)
+            if cell.needs_calc == True:
+                logging.info("Need to calculate {}".format(cell.address))
+                return self.calculate(cell)
+
+            else:
+                logging.info("Using already calculated value of {} for cell {}".format(cell.value,cell.address))
+                return self.getCell(address).value
         except:
             logging.info("Empty cell found at {}. Setting value to zero".format(address))
             return 0
@@ -162,7 +169,7 @@ class Loader:
         logging.info("Value in cell {} set to {}".format(address, newvalue))
 
         # Update dependent cells values
-        self.updateDepCells(address)
+        # self.updateDepCells(address)
 
     def setformula(self, newform, address):
         '''
@@ -195,9 +202,12 @@ class Loader:
             logging.info("Found dependents at {}".format(dep_addrs))
             for addrs in dep_addrs:
                 dep = self.getCell(addrs)
+
+                #check if cell has already been calculated previously
                 if dep.needs_calc:
+                    logging.info("Checking if need to calculate dependent cell {}".format(dep.address))
                     self.calculate(dep)
-                    logging.info("Calculating dependent cell {}".format(dep.address))
+
                 else:
                     logging.info("Already calculated dependent cell {}".format(dep.address))
         else:
@@ -205,23 +215,19 @@ class Loader:
             # pass
 
     def calculate(self, cell):
-        logging.info("Calculating cell {}".format(cell.address))
         '''
         Calculates the formula in a cell using post order traversal of RPN
         @param cell: Cell to be calculated
         @return: Value of calculation
         '''
 
-        logging.info("\n\n******** Evaluating cell {} with RPN {}".format(cell.address, cell.rpn))
+        logging.info("\n\n******** Calculating cell {} with RPN {}".format(cell.address, cell.rpn))
 
         tree = cell.rpn
         stack = []
 
         for node in tree:
-            logging.info("Processing node: {} of type {} and subtype {} and value {}".format(node,
-                                                                                             node.token.type,
-                                                                                             node.token.subtype,
-                                                                                             node.token.value))
+            # logging.info("Processing node: {} of type {} and subtype {} and value {}".format(node,node.token.type,node.token.subtype,node.token.value))
 
             #Operator Node
             if isinstance(node, OperatorNode):
@@ -232,7 +238,7 @@ class Loader:
                     eval_str = '''{}{}{}'''.format(arg1, op, arg2)
                     result = eval(eval_str)
                     stack.append(result)
-                    logging.info("Found operator node with value {}".format(node.token.value))
+                    # logging.info("Found operator node with value {}".format(node.token.value))
 
                 else:
                     arg1 = stack.pop()
@@ -252,26 +258,27 @@ class Loader:
                     for i,a in enumerate(args):
                         temp_args.append(a)
                     arg_str = '{}'.format(tuple(temp_args))
-                    logging.info("Argument string is: {}".format(arg_str))
+                    # logging.info("Argument string is: {}".format(arg_str))
                     eval_str = '{}{}'.format(func, arg_str)
-                    logging.info("Evaluate code is: {}".format(eval_str))
+                    # logging.info("Evaluate code is: {}".format(eval_str))
                     result = eval(eval_str)
                     stack.append(result)
 
             #Operand Node - Number type
             elif node.token.subtype == 'NUMBER':
                  stack.append(node.token.value)
-                 logging.info("Found number node with value {}".format(node.token.value))
+                 # logging.info("Found number node with value {}".format(node.token.value))
 
             # Operand Node - Logical type
             elif node.token.subtype == 'LOGICAL':
                  stack.append(node.token.value)
-                 logging.info("Found logical node with value {}".format(node.token.value))
+                 # logging.info("Found logical node with value {}".format(node.token.value))
 
             #Operand node - Range type
             else:
                 range_tuple = None
-                if any(isinstance(i, list) for i in node.rangeadds):
+
+                if isinstance(node, RangeNode):
                     range_val = []
                     for adds in node.rangeadds:
                         slice_= []
@@ -279,21 +286,21 @@ class Loader:
                             slice_.append(self.getvalue(add))
                         range_val.append(tuple(slice_))
                         range_tuple = tuple(range_val)
-                        logging.info("Found range node {} with value {}".format(node.token.value, range_tuple))
+                        # logging.info("Found {} {} with value {}".format(node.__class__.__name__,node.token.value, range_tuple))
 
                 # Operand node - Cell type
-
-                else:
+                elif isinstance(node, CellNode):
                     range_val = []
-                    adds = node.rangeadds[0][0]
+                    adds = node.rangeadds
                     range_val = self.getvalue(adds)
                     range_tuple = range_val
+                    # logging.info("Found {} {} with value {}".format(node.__class__.__name__, node.token.value, range_tuple))
 
                 stack.append(range_tuple)
 
 
 
-            logging.info("Stack is: {}".format(stack))
+            # logging.info("Stack is: {}".format(stack))
 
         #Get final result from remaining value in stack
         assert len(stack) == 1, 'More than 1 remaining value in stack. Recheck the stack algorithm'
@@ -301,5 +308,7 @@ class Loader:
 
         #Set cell value to new calculated value
         self.setvalue(result,cell.address)
+
+        return result
 
 
