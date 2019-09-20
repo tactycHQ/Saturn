@@ -14,16 +14,12 @@ def main():
     # print(excel.precMap)
     # print(excel.depMap)
 
-
-    set_addr = 'Sheet3!F5'
-    addr = 'Sheet3!F7'
-    # c = excel.getCell(addr)
-    # val = excel.evaluate(c)
-    # print(val)
-
-    # addr = 'Returns!D5'
-    excel.setvalue(10,set_addr)
-    print(excel.getvalue(addr))
+    set_addr = 'Sheet1!C3'
+    addr = 'Sheet1!C9'
+    # formula = '=SUM(E4:E6)+10'
+    excel.setvalue(0.0002,set_addr)
+    # excel.setformula(formula,'Sheet1!E7')
+    print("Final value: {}".format(excel.getvalue(addr)))
 
 
 

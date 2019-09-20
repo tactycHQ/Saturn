@@ -7,7 +7,7 @@ from decimal import Decimal, ROUND_HALF_UP, ROUND_UP
 import operator
 import numpy as np
 
-from pycel_.excelutil import (
+from pycel.excelutil import (
     build_wildcard_re,
     coerce_to_number,
     DIV0,
@@ -25,7 +25,7 @@ from pycel_.excelutil import (
     REF_ERROR,
     VALUE_ERROR,
 )
-from pycel_.lib.function_helpers import (
+from pycel.lib.function_helpers import (
     excel_helper,
     excel_math_func,
 )
@@ -42,7 +42,8 @@ OP_MAP = {
 
 FUNC_MAP = {
     'SUM': 'xsum',
-    'MIN': 'xmin'
+    'MIN': 'xmin',
+    'VLOOKUP':'vlookup'
 }
 
 def _numerics(*args, keep_bools=False):
@@ -934,4 +935,4 @@ def choose(index_num, *values): # Excel reference: https://support.office.com/en
 
 if __name__ == '__main__':
 
-    print(xsum('0.1','0.2','0.5'))
+    print(xsum('0.1',('0.2','0.2'),'0.5'))

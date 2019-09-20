@@ -2,7 +2,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 from openpyxl import load_workbook, workbook
-from ast_ import ASTNode, OperatorNode, RangeNode, OperandNode, FunctionNode
+from rpnnode import RPNNode, OperatorNode, RangeNode, OperandNode, FunctionNode
 from cell import Cell
 from tqdm import tqdm
 from excellib import *
@@ -157,6 +157,22 @@ class Loader:
         # Update dependent cells values
         self.updateDepCells(address)
 
+    def setformula(self, newform, address):
+        '''
+        Sets value of a cell to a specified new value
+        @param newvalue: New value to be set
+        @param address: Cell to be set
+        '''
+
+        # Set value of cell object to new value
+        cell = self.getCell(address)
+        cell.formula = newform
+
+        #Calculate new formula
+        self.calculate(cell)
+
+        logging.info("Formula in cell {} set to {}".format(address, newform))
+
     def updateDepCells(self, address):
         '''
         Update all dependent cells for a given address
@@ -164,14 +180,16 @@ class Loader:
         @return:
         '''
         dep_addrs = self.depMap.get(address)
-        logging.info("Updating dependent cells {}".format(dep_addrs))
 
-        # First check if the cell is hardcode. If it is, then it will have no dependents
+
+        # First check if there any dependents. No dependents if cell is an output
         if dep_addrs:
+            logging.info("Updating dependent cells {}".format(dep_addrs))
             for addrs in dep_addrs:
                 dep = self.getCell(addrs)
                 self.calculate(dep)
         else:
+            logging.info("No more dependent cells found.")
             pass
 
     def calculate(self, cell):
@@ -189,7 +207,7 @@ class Loader:
         for node in tree:
             logging.info("Processing node: {}".format(node))
 
-            #OPERATOR NODE
+            #Operator Node
             if isinstance(node, OperatorNode):
                 arg2 = stack.pop()
                 arg1 = stack.pop()
@@ -199,7 +217,7 @@ class Loader:
                 stack.append(result)
                 logging.info("Found operator node with value {}".format(node.token.value))
 
-            #FUNCTION NODE
+            #Function Node
             elif isinstance(node,FunctionNode):
                 if node.num_args:
                     args = stack[-node.num_args:]
@@ -208,24 +226,35 @@ class Loader:
 
                     temp_args=[]
                     for i,a in enumerate(args):
-                        temp_args.append(float(a))
+                        temp_args.append(a)
 
                     arg_str = '{}'.format(tuple(temp_args))
-                    eval_str = '{}({})'.format(func, arg_str)
-                    logging.info(eval_str)
+                    logging.info("Argument string is: {}".format(arg_str))
+                    eval_str = '{}{}'.format(func, arg_str)
+                    logging.info("Evaluate code is: {}".format(eval_str))
                     result = eval(eval_str)
                     stack.append(result)
 
-            #OPERAND NODE
+            #Operand Node
             else:
-                #NUMBER NODE SUBTYPE
+                #Number node subtype
                 if node.token.subtype == 'NUMBER':
-                    stack.append(float(node.token.value))
+                    stack.append(int(node.token.value))
                     logging.info("Found number node with value {}".format(node.token.value))
-                #RANGE NODE SUBTYPE
+
+                #Range node subtype
                 else:
-                    stack.append(float(self.getCell(node.token.value).value))
-                    logging.info("Found range node with value {}".format(self.getCell(node.token.value).value))
+                    range_val = []
+                    for adds in node.rangeadds:
+                        slice_= []
+                        for add in adds:
+                            rcell = self.getCell(add)
+                            slice_.append(rcell.value)
+                        range_val.append(tuple(slice_))
+                    range_tuple = tuple(range_val)
+
+                    stack.append(range_tuple)
+                    logging.info("Found range node {} with value {}".format(node.token.value,range_tuple))
 
             logging.info("Stack is: {}".format(stack))
 
@@ -234,4 +263,6 @@ class Loader:
         result = stack.pop()
 
         #Set cell value to new calculated value
-        cell.value = result
+        self.setvalue(result,cell.address)
+
+

@@ -1,7 +1,7 @@
 import logging
 import traceback
 logger = logging.getLogger(__name__)
-from ast_ import ASTNode, OperatorNode, RangeNode, OperandNode, FunctionNode
+from rpnnode import RPNNode, OperatorNode, RangeNode, OperandNode, FunctionNode
 from networkx.classes.digraph import DiGraph
 from tokenizer import Tokenizer, Token
 
@@ -19,7 +19,6 @@ class Cell:
         self.address = address
         self.value = None
         self.prec = []
-        self.hardcode = None
         self._formula = None
         self.rpn = []
         self.tree = None
@@ -46,7 +45,6 @@ class Cell:
         #First check if formula starts with correct operator
         if str(excel_formula).startswith(('=','+')):
            self.rpn = self.make_rpn(excel_formula)
-           self.hardcode = False
 
            # creates list of precedents (who do I depend on)
            self.createPrec()
@@ -56,39 +54,21 @@ class Cell:
             logging.debug("Formula does not start with = or +. Creating a hardcode cell")
             tok = Token(self.address,Token.LITERAL,None)
             self.rpn.append(OperandNode(tok))
-            self.hardcode = True
 
         logging.info("RPN is: {}".format(self.rpn))
-
 
     def createPrec(self):
         for node in self.rpn:
             if isinstance(node,RangeNode):
-                self.prec.append(node.token.value)
-
-    # def traverse(self, tree):
-    #
-    #     code = []
-    #
-    #     root = list(tree.nodes()).pop()
-    #
-    #     for child in list(tree.predecessors(root)):
-    #         if isinstance(child,FunctionNode):
-    #             self.traverse(child)
-    #         elif isinstance(child,RangeNode):
-    #             self.traverse(child)
-    #     make_code(children)
-    #     code.append(make_cod)
-    #
-    #     return code
+                self.prec.extend(node.prec_in_range)
 
     def make_node(self, token):
         sheet = self.address.split('!')[0]
         if token.type == Token.OPERAND and token.subtype == Token.RANGE and '!' not in token.value:
             token.value = '{}!{}'.format(sheet, token.value)
-            return ASTNode.create(token)
+            return RPNNode.create(token)
         else:
-            return ASTNode.create(token)
+            return RPNNode.create(token)
 
     def make_rpn(self, expression):
         """

@@ -1,64 +1,23 @@
-from pycel_.excelcompiler import ExcelCompiler
-from pycel_.excelutil import AddressCell, AddressRange
-import time
-
+from pycel.excelcompiler import ExcelCompiler
+from pycel.excelutil import AddressCell, AddressRange
 import logging
 logging.basicConfig()
-logging.getLogger().setLevel(logging.DEBUG)
-
-xlsname = "../Saturn/TestModel_v2.xlsx"
-
-start = time.time()
-excel = ExcelCompiler(xlsname)
-# end = time.time()
-# print(end-start)
-# flex = 'Sheet1!C4'
-# cell1 ='Sheet1!C6'
-# print("Starting")
-
-cell2 ='Sheet3!D5'
+# logging.getLogger().setLevel(logging.DEBUG)
 
 
+def main():
 
-# print(excel._formula_cells_dict)
+    xlsname = "C:/Users/anubhav/Desktop/Projects/Saturn/Saturn/TestModel_v2.xlsx"
 
-# print(excel._evaluate_non_iterative(cell))
-# # print(excel._evaluate(cell))
-#
-# f_cells = excel.formula_cells()
-# print(type(f_cells[0]))
+    excel = ExcelCompiler(xlsname)
+    cell2 ='Sheet1!B6'
+    excel.evaluate(cell2)
+    print("----------")
+    excel.set_value('Sheet1!B3',5)
+    print("----------")
+    excel.evaluate(cell2)
+
+if __name__ == '__main__':
+        main()
 
 
-# excel.evaluate(cell1)
-# start = time.time()
-# print(excel.evaluate(cell2))
-# end = time.time()
-# print(end-start)
-# print(excel.cell_map)
-print(excel.evaluate(cell2))
-print("----------")
-excel.set_value('Sheet3!D4',2)
-print("----------")
-print(excel.evaluate(cell2))
-# # print(excel.evaluate(set))
-# # excel.recalculate()
-# val1 = excel.evaluate(cell1)
-# val2 = excel.evaluate(cell2)
-# # excel.recalculate()
-
-# print(val1)
-# print(val2)
-
-# form_cells = excel.formula_cells()
-# print(len(form_cells))
-# print(form_cells[0])
-
-# c = AddressRange(cell1)
-# excel.evaluate(cell1)
-# excel._gen_graph(cell1)
-# excel._make_cells(c)
-
-# print(excel.cell_map)
-# print(excel.dep_graph)
-# print(excel.validate_calcs())
-# print(excel._formula_cells_dict)
