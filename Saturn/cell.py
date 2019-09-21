@@ -73,7 +73,12 @@ class Cell:
 
     def make_node(self, token):
 
+        #Extract sheet name
         sheet = self.address.split('!')[0]
+
+        #Remove absolute reference $
+        token.value = token.value.replace('$','')
+
         return RPNNode.create(token, sheet)
 
 

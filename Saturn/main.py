@@ -6,16 +6,16 @@ def main():
     logger.setLevel(logging.DEBUG)
     # logger.setLevel(logging.ERROR)
 
-    xlsname = "TestModel_v2.xlsx"
+    # xlsname = "TestModel_v2.xlsx"
     # xlsname = "../Test Models/TestModel_v1.xlsx"
-    # xlsname = "../Test Models/LP_LatAm Model vF.xlsx"
+    xlsname = "../Test Models/LPI_Consolidated Model vInvestor.xlsx"
 
     excel = Loader(xlsname)
 
-    set_addr = 'Sheet1!B4'
-    addr = 'Sheet1!D3'
+    set_addr = 'Quarterly!E4'
+    addr = 'Quarterly!Q53'
     # formula = '=SUM(E4:E6)+10'
-    excel.setvalue(50,set_addr)
+    excel.setvalue(0.2,set_addr)
     # excel.setformula(formula,'Sheet1!E7')
     logging.info(">>>>>>>>>>>Starting evaluation")
 
@@ -23,6 +23,9 @@ def main():
 
 
 if __name__ ==  '__main__':
+    import traceback
+    import sys
+    traceback.print_exc(file=sys.stdout)
     main()
 
 

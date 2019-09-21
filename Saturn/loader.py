@@ -1,5 +1,5 @@
+import traceback
 import logging
-
 logger = logging.getLogger(__name__)
 from openpyxl import load_workbook, workbook
 from rpnnode import RPNNode, OperatorNode, RangeNode, OperandNode, FunctionNode, CellNode
@@ -130,6 +130,7 @@ class Loader:
         try:
             return self.cells.get(address)
         except Exception as ex:
+            print(ex)
             logging.info("No cell found")
 
     def getvalue(self,address):
@@ -147,9 +148,9 @@ class Loader:
             else:
                 logging.info("Using already calculated value of {} for cell {}".format(cell.value,cell.address))
                 return self.getCell(address).value
-        except:
+        except Exception as ex:
             logging.info("Empty cell found at {}. Setting value to zero".format(address))
-            return 0
+            return None
 
     def setvalue(self, newvalue, address):
         '''
