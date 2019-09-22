@@ -7,13 +7,13 @@ logging.basicConfig()
 
 def main():
 
-    xlsname = "C:/Users/anubhav/Desktop/Projects/Saturn/Saturn/TestModel_v2.xlsx"
+    xlsname = "C:/Users/anubhav/Desktop/Projects/Saturn/Test Models/Arraytest v1.xlsx"
 
     excel = ExcelCompiler(xlsname)
-    cell2 ='Sheet1!E13'
+    cell2 ='Sheet1!D10'
     excel.evaluate(cell2)
     print("----------")
-    excel.set_value('Sheet1!B13','5')
+    excel.set_value('Sheet1!C5','1')
     print("----------")
     print(excel.evaluate(cell2))
 

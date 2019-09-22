@@ -90,7 +90,6 @@ class Loader:
         self.createDepMap()
 
     def makeCell(self, address):
-        logging.info("IN MAKE CELL")
         '''
         Wrapper function that instantiates 1 Cell object for each extracted cell
         @return: Returns the cell object
@@ -259,9 +258,9 @@ class Loader:
                     for i,a in enumerate(args):
                         temp_args.append(a)
                     arg_str = '{}'.format(tuple(temp_args))
-                    # logging.info("Argument string is: {}".format(arg_str))
+                    logging.info("Argument string is: {}".format(arg_str))
                     eval_str = '{}{}'.format(func, arg_str)
-                    # logging.info("Evaluate code is: {}".format(eval_str))
+                    logging.info("Evaluate code is: {}".format(eval_str))
                     result = eval(eval_str)
                     stack.append(result)
 

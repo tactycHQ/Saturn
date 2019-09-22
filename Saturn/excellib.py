@@ -936,5 +936,5 @@ def choose(index_num, *values): # Excel reference: https://support.office.com/en
 
 if __name__ == '__main__':
     # com = "xmatch(5, ((5, 2), (5, 60), (10, 11), (15, 16), (20, 21), (25, 26)), 2, 'FALSE')"
-    com = "vlookup(5, ((5, 2), (5, 60), (10, 11), (15, 16), (20, 21), (25, 26)), 2, False)"
+    com = 'vlookup(2, ((1, 10), (1, 10), (3, 30), (4, 40), (5, 50)), 2, False)'
     print(eval(com))

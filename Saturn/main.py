@@ -6,19 +6,18 @@ def main():
     logger.setLevel(logging.DEBUG)
     # logger.setLevel(logging.ERROR)
 
-    # xlsname = "TestModel_v2.xlsx"
+    xlsname = "TestModel_v2.xlsx"
     # xlsname = "../Test Models/TestModel_v1.xlsx"
-    xlsname = "../Test Models/LPI_Consolidated Model vInvestor.xlsx"
+    # xlsname = "../Test Models/Arraytest v1.xlsx"
 
     excel = Loader(xlsname)
 
-    set_addr = 'Quarterly!E4'
-    addr = 'Quarterly!Q53'
-    # formula = '=SUM(E4:E6)+10'
-    excel.setvalue(0.2,set_addr)
-    # excel.setformula(formula,'Sheet1!E7')
-    logging.info(">>>>>>>>>>>Starting evaluation")
+    set_addr = 'Sheet1!C4'
+    excel.setvalue('T2', set_addr)
 
+
+    logging.info(">>>>>>>>>>>Starting evaluation")
+    addr = 'Sheet1!B10'
     print("Final value at {} : {}".format(addr,excel.getvalue(addr)))
 
 
