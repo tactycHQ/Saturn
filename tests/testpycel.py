@@ -13,9 +13,10 @@ def main():
     cell2 ='Sheet1!B11'
     excel.evaluate(cell2)
     logging.info("\n\n-----SET VALUE-----")
-    logging.info(excel.set_value('Sheet1!C4','1'))
+    excel.set_value('Sheet1!C4','5')
     logging.info("\n\n----EVALUATE------")
-    print("Final value is: {}".format(excel.evaluate(cell2)))
+    ret = excel.evaluate(cell2)
+    print("Final value is: {}".format(ret))
 
 if __name__ == '__main__':
         main()
