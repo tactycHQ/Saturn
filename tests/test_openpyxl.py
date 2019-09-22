@@ -6,11 +6,14 @@ from openpyxl.formula import Tokenizer
 
 
 #open the .xls file
-xlsname = "../Test Models/LP_India Model vF.xlsx"
+xlsname = "C:/Users/anubhav/Desktop/Projects/Saturn/Saturn/TestModel_v2.xlsx"
 wb = load_workbook(filename=xlsname, data_only=False)
-for sheet in wb.sheetnames:
-    val = sheet['C2'].value
-    print(val)
+for sheet in wb:
+    print(sheet.formula_attributes.items())
+    for address, props in sheet.formula_attributes.items():
+        if props.get('t') == 'array':
+            ref_addr  = props.get('ref')
+
 
 # tok = Tokenizer(val)
 # print(t for t in tok.items)

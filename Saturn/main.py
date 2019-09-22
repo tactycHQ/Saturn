@@ -11,13 +11,15 @@ def main():
     # xlsname = "../Test Models/Arraytest v1.xlsx"
 
     excel = Loader(xlsname)
+    print(excel.cells.get('Sheet1!B11'))
+
 
     set_addr = 'Sheet1!C4'
-    excel.setvalue('T2', set_addr)
+    excel.setvalue(5, set_addr)
 
 
     logging.info(">>>>>>>>>>>Starting evaluation")
-    addr = 'Sheet1!B10'
+    addr = 'Sheet1!B11'
     print("Final value at {} : {}".format(addr,excel.getvalue(addr)))
 
 

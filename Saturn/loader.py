@@ -140,6 +140,7 @@ class Loader:
         '''
         try:
             cell = self.getCell(address)
+            print(cell.__dict__)
             if cell.needs_calc == True:
                 logging.info("Need to calculate {}".format(cell.address))
                 return self.calculate(cell)
@@ -148,6 +149,7 @@ class Loader:
                 logging.info("Using already calculated value of {} for cell {}".format(cell.value,cell.address))
                 return self.getCell(address).value
         except Exception as ex:
+            logging.info(ex)
             logging.info("Empty cell found at {}. Setting value to zero".format(address))
             return None
 
